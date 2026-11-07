@@ -203,7 +203,9 @@ const STORY = {
       "2026-11-07 收尾批次：secondRun.gameOver 文案落库（游戏结束 / 感谢您的参与。/ 回到封面），引擎 RENDERERS.gameOver 的 safe() 局部占位过滤保留、零改动；删除 showFork() 入口的 Bug 2 临时控制台诊断打印（诊断已完成使命，Bug 2 已实跑验证 PASS），xieEligible 仍只在函数入口计算一处（bug2_share_calc_probe 锁死）；gameOver.placeholder 引擎不读、属死字段已删（genericEndings.placeholder 是活的，不动）；forkTexts.labelXiexunHE 补键排到下一批单独走，本批不落。",
       "2026-11-07 批 1 补丁 · forkTexts.labelXiexunHE 补键（嘟嘟拍板单独走一批）：uiTexts.forkTexts 21 → 22 条，新增键取值逐字等于引擎原回退字面量「对谢寻说出你记起的事」——不新写剧情，只把已在产品里跑的文案搬回数据层；showFork() 的 forkText('labelXiexunHE', 回退串) 调用签名不动（其余 20 条 forkText 调用同样带回退，统一保留兜底），补键后数据值优先、回退不再命中。三处同源（权威 JSON / 内嵌 const STORY / clueScaffold-batch1.json）程序化重生成；bug2_share_calc_probe 新增「数据层有键 + 传哨兵回退仍取数据值」断言。",
       "2026-11-07 批 5 · 多槽存档（嘟嘟指令 3.1–3.6）：新增 STORY.saveSlots（autoSlot / manualSlots / totalSlots / metaKey）与 STORY.multiSlotSave.enabled，引擎在 CFG 里读（CFG 仍是引擎配置，数据层为单一来源，字段缺失有默认兜底）；新增 readSlotMeta / writeSlotMeta / removeSlotMeta / deleteSlot，saveGame() 写完 S 同步写 meta（meta 只存显示用轻量字段，不存 S 全量）；存档页由单槽改为 slots 数组驱动的 4 卡片（自动 + 手动 1/2/3），有档显示周目 · 区间 · 时间 · 最高好感或已通关结局 + 继续/读取 / 覆盖 / 删除，空槽显示「保存到这里」；事件委托新增 save-over / del-slot 两个二次确认分支，save / load 原逻辑保留；CFG.multiSlotSave.enabled=false 回退旧单槽页 saveLegacy()（旧页代码保留、键名不变）。PREFIX 仍 fog5_，afterChange 仍 saveGame('auto')，normalizeSave / export / import / back-to-cover 的 btn-continue 均未动。地点段暂恒为空：mainline.locations 与 S.location 要等地点分区批次才存在，故 meta.location 存 S.location 或 null，不预写假默认值 dining_bar。",
-      "2026-11-08 主线选择文案人话化（嘟嘟指令 1–13）：主线页顶部 desc/gauge 换成口语版（无 R2 / M1 / M2 / 热点）；线索卡状态标签改 raw「记下了 · 还没问」/ pending「问明白了 · 还没写」/ done「记对了」/ wrong「写错了」，并加 q.found 门禁——未点开的卡不再显示「记下了」（旧版 state 恒 raw 导致标题与正文「还没点开」自相矛盾）；按钮改「看看这里有什么」/「去问祝颜」/「去问车上认识的人」/「就是这句：x」；「印证」全部换成问/问过（含 scene tip、热点弹窗、补记弹窗、addLog 两条、重读标题）；通道 A / 通道 B 渲染层清零（祝颜卡回退块 small、A 按钮主标签、两处 addLog 括号）；揭示 / R1 / R2 / M1 / M2 / state: done / wrong=true / interpretedCount 等开发备注从弹窗文案删除，写对改「这一笔，你记下了。／你写的是：x」、写错改「写错了，改不了。／这一笔不会再算了。」；挑 token 弹窗换口语长版；祝颜弹窗括号只留「（trust N）」、通道 B 弹窗括号整行删；重读 raw 改「还没问过，只有原句。」（采纳嘟嘟建议，与全文「问问/问清楚」口吻统一）。数据层 uiTexts.channelBPickTitle「找谁印证？」→「问谁？」。线索的 source / reveals 数据字段、state / wrong / interpretedCount 内部字段、判定链、分岔台、终局问答、手账页一律不动。"
+      "2026-11-08 主线选择文案人话化（嘟嘟指令 1–13）：主线页顶部 desc/gauge 换成口语版（无 R2 / M1 / M2 / 热点）；线索卡状态标签改 raw「记下了 · 还没问」/ pending「问明白了 · 还没写」/ done「记对了」/ wrong「写错了」，并加 q.found 门禁——未点开的卡不再显示「记下了」（旧版 state 恒 raw 导致标题与正文「还没点开」自相矛盾）；按钮改「看看这里有什么」/「去问祝颜」/「去问车上认识的人」/「就是这句：x」；「印证」全部换成问/问过（含 scene tip、热点弹窗、补记弹窗、addLog 两条、重读标题）；通道 A / 通道 B 渲染层清零（祝颜卡回退块 small、A 按钮主标签、两处 addLog 括号）；揭示 / R1 / R2 / M1 / M2 / state: done / wrong=true / interpretedCount 等开发备注从弹窗文案删除，写对改「这一笔，你记下了。／你写的是：x」、写错改「写错了，改不了。／这一笔不会再算了。」；挑 token 弹窗换口语长版；祝颜弹窗括号只留「（trust N）」、通道 B 弹窗括号整行删；重读 raw 改「还没问过，只有原句。」（采纳嘟嘟建议，与全文「问问/问清楚」口吻统一）。数据层 uiTexts.channelBPickTitle「找谁印证？」→「问谁？」。线索的 source / reveals 数据字段、state / wrong / interpretedCount 内部字段、判定链、分岔台、终局问答、手账页一律不动。",
+      "2026-11-08 收束批 · 祝颜确认 + 空③改动：新增 finale.uiTexts.verdictConfirm（lines 三句白话 / closingFull / partialNoteByBlank 三键 / partialNoteDefault / closingPartial），引擎新增 fullSentenceFromBlank(b,ansKey) 把「题干 + 玩家选中的选项 label」拼成完整句、showVerdictConfirm(callback) 在 judgeFinale 放行后先播祝颜确认再进分岔台（只念填对的空，对 2 空时按 incompleteMarks 第一个 true 的下标点名差哪一空、找不到回退 partialNoteDefault；无 isSecondRun 门禁，一周目同样播；verdictConfirm 缺失时直接 callback）。judgeFinale 删掉「答对 x/3 · 读懂 y/6 · 完整档 …（M7：五枚 done）」系统字段行。空③答案词改「慢慢融进雾里」→「慢慢变成这趟车的一部分」，同步 clues[3].tokens[c4_c].word 与 blanks[2] 正确项 label / readAs，主线关键词、终局候选池、手账三处显示自动一致。verdictFull / verdictPartial / verdictTwo 三段判定文本、空①②、candidateText 逻辑、分岔台、BE 口径、三空判定链一律未动。",
+      "2026-11-08 小字修正批（嘟嘟指出上一批改错）：① 一周目陪伴按钮 small 改回真话——actComp() 走 costAction()，实际耗 1 点，上一批「不耗点 · 每区间 1 次」是错标（当时的理由是「比 +4 好感有用」，前提搞反）；新串「花 1 点 · 每区间 1 次」。② 谢寻二周目陪伴 small「每区间 1 次」→「0 点 · 每区间 1 次」，明确告知不耗点。③ 深度事件可点档 deepHint()「深度事件」→「花 1 点 · 深度事件」（深度事件实际耗 1 点，此前没写）；未达门槛 / 未初见 / 已完成三档一字未动。④ verdictFull 正文「不肯选的人，会慢慢融进雾里。」→「…会慢慢变成这趟车的一部分。」，与空③答案词统一；finale.distractorLogic[2].answer 同步改（设计备注、不渲染）。只改上屏小字与一句判定文本，costAction / actComp / actDeep / srActComp / 行动点结算 / 深度解锁门槛一律未动。"
     ]
   },
   "saveSlots": {
@@ -833,11 +835,11 @@ const STORY = {
               },
               {
                 "key": "c4_c",
-                "label": "慢慢融进雾里",
+                "label": "慢慢变成这趟车的一部分",
                 "right": true,
                 "source": "c4_c",
                 "note": "",
-                "readAs": "不肯选的人，会慢慢融进雾里。"
+                "readAs": "不肯选的人，会慢慢变成这趟车的一部分。"
               },
               {
                 "key": "q3_5",
@@ -908,9 +910,34 @@ const STORY = {
             "dismissible": false
           },
           "blankAsk": "手账摊在膝上。你从这一路记下的原话里，挑一句填进去。",
-          "verdictFull": "你把三笔连起来，忽然懂了。雾不是天气，是没做完选择的人被暂留的地方。只有自己记下来的东西带得走。不肯选的人，会慢慢融进雾里。你合上手账。车门开了。",
+          "verdictFull": "你把三笔连起来，忽然懂了。雾不是天气，是没做完选择的人被暂留的地方。只有自己记下来的东西带得走。不肯选的人，会慢慢变成这趟车的一部分。你合上手账。车门开了。",
           "verdictPartial": "你把三笔连起来，懂了大概。只是有几笔记不清了，雾从纸缝里漫上来，把边角泡花了。你合上手账。车门开了。有些答案，你带得走；有些，留在了雾里。",
           "verdictTwo": "你拼出了半句。剩下半句，雾替你补上了——补的不是你的答案。车门开了。你听见广播在念一个你没记下来的站名。",
+          "verdictConfirm": {
+            "note": "三空答对≥2空后、进分岔台前播。祝颜念玩家填的完整句（题干+玩家填的词拼成），每句后补一句白话。只对2空时按 incompleteMarks 点名差哪一空。白话是祝颜的解释，不违反R2。",
+            "lines": [
+              {
+                "quote": "",
+                "plain": "——有人一直在等自己做出决定的那一刻，始终没等到，就永远停在这儿了。"
+              },
+              {
+                "quote": "",
+                "plain": "——别人说的、别人替你记的，一擦就没了。只有你自己写下的，才能一直留下。"
+              },
+              {
+                "quote": "",
+                "plain": "——不选，也是一种选。选了不选的人，就留在这儿了。"
+              }
+            ],
+            "closingFull": "你拼出来了。这趟车，就是这个。",
+            "partialNoteByBlank": {
+              "blank0": "第一空没填对。……不过差的那一点，你大概也摸到了。",
+              "blank1": "第二空没填对。……不过差的那一点，你大概也摸到了。",
+              "blank2": "第三空没填对。……不过差的那一点，你大概也摸到了。"
+            },
+            "partialNoteDefault": "有一空没填对。……不过差的那一点，你大概也摸到了。",
+            "closingPartial": "这趟车，就是这个。"
+          },
           "soloShort": "你一个人下了车。雾还没散透，但你手里有一本手账，上面有几笔是你自己记下的。够你走一段路了。",
           "genericDecoys": [
             {
@@ -1107,7 +1134,7 @@ const STORY = {
           },
           {
             "blank": 3,
-            "answer": "慢慢融进雾里",
+            "answer": "慢慢变成这趟车的一部分",
             "logic": "2 以为还有下一站，3 过程当结果，4 终点不存在，5 特例当规则"
           },
           {
@@ -1741,7 +1768,7 @@ const STORY = {
             {
               "text": "留在这儿了",
               "key": "c4_c",
-              "word": "慢慢融进雾里"
+              "word": "慢慢变成这趟车的一部分"
             },
             {
               "text": "名字还能改",
@@ -3838,9 +3865,9 @@ const RENDERERS = {
                : `二周目 · 已陪伴 ${S.compTimes[L.id]||0} 次 · 陪伴不加好感`)
         : `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`;
       const compSub = sr
-        ? (xie ? (compDone?'本区间已陪伴':'每区间 1 次')
+        ? (xie ? (compDone?'本区间已陪伴':'0 点 · 每区间 1 次')
                : (compDone?'本区间已陪伴':'0 点 · 不加好感 · 每区间 1 次'))
-        : (!met?'先搭句话':compDone?'本区间已陪伴':'不耗点 · 每区间 1 次');
+        : (!met?'先搭句话':compDone?'本区间已陪伴':'花 1 点 · 每区间 1 次');
       h += `<div class="card">
         <div class="ttl">${esc(L.name)}<small>${thLabel(L)} · ${tierName(L)}</small></div>
         <div class="desc">${esc(L.tag)}<br>${esc(L.car)}</div>
@@ -4144,7 +4171,7 @@ function deepHint(L,deepDone,met,a){
   if(deepDone) return '（已完成）';
   if(!met) return '先搭句话';
   if(a<CFG.deepUnlock) return '还不到时候';
-  return '深度事件';
+  return '花 1 点 · 深度事件';
 }
 function achievedList(){ return activeLovers().filter(reached); }
 
@@ -5130,6 +5157,14 @@ function candidateText(key){
   const g=((fin.uiTexts||{}).genericDecoys||[]).find(x=>x.key===key);
   return pendingText(g&&g.text,'（通用候选待写 · '+key+'）');
 }
+/* 【收束】把「题干 + 玩家填的选项 label」拼成完整句。
+   题干里的 ____ 替换成 candidateText(ansKey)；找不到占位时退回 label 本身。 */
+function fullSentenceFromBlank(b, ansKey){
+  const p=String((b&&b.prompt)||'');
+  const ans=candidateText(ansKey)||'';
+  if(p.indexOf('____')>=0) return p.replace('____', ans);
+  return ans;
+}
 /* 【B1 确认】逐空只收集 S.finaleAnswers，三空答完才进 judgeFinale() 统一判定；
    第一空答错绝不直接 BE（Q3 口径 C：BE 只看总答对空数 ≤1）。
    pushEvent 只入队，由全局事件委托统一 flushEvents，勿在此重复 flush。 */
@@ -5150,6 +5185,39 @@ function askBlank(i){
   }));
   pushEvent(head,opts);   // 「想不起来了」弃答选项已删（B3）
 }
+/* 【收束】三空放行后，先播祝颜确认，再进分岔台。
+   只念填对的空（题干+玩家填的词拼成完整句），每句后补一句白话。
+   对2空时按 incompleteMarks 第一个 true 的下标取 partialNoteByBlank[blankN] 点名差哪一空；
+   找不到匹配时回退 partialNoteDefault。
+   全部播完调 callback 进分岔台。非二周目也播——一周目同样需要收束。 */
+function showVerdictConfirm(callback){
+  const vc=FUI.verdictConfirm;
+  if(!vc || !Array.isArray(vc.lines) || !vc.lines.length){ if(callback) callback(); return; }
+  const rightCount=FIN.blanks.filter(b=>S.finaleAnswers[b.index]===b.answerToken).length;
+  const items=[];
+  vc.lines.forEach((line,i)=>{
+    const b=FIN.blanks[i];
+    if(!b) return;
+    if(S.finaleAnswers[b.index]!==b.answerToken) return;   // 只念填对的空
+    const ansKey=S.finaleAnswers[b.index];
+    const quote=(typeof line.quote==='string' && line.quote.trim())
+      ? line.quote
+      : fullSentenceFromBlank(b, ansKey);
+    items.push(`<span class="nm">祝颜</span><br>「${esc(quote)}」<br>`
+      + (line.plain ? `<span class="desc">${esc(line.plain)}</span><br>` : ''));
+  });
+  if(rightCount<3){
+    const missIdx=(Array.isArray(S.incompleteMarks)?S.incompleteMarks:[]).indexOf(true);
+    const byBlank=(vc.partialNoteByBlank||{});
+    const pn=byBlank['blank'+missIdx] || vc.partialNoteDefault || '';
+    if(pn) items.push(`<span class="desc">${esc(pn)}</span>`);
+  }
+  const closing = (rightCount>=3) ? (vc.closingFull||'') : (vc.closingPartial||'');
+  if(closing) items.push(`<span class="nm">祝颜</span><br>${esc(closing)}`);
+  if(!items.length){ if(callback) callback(); return; }
+  pushEvent(items.join('<br>'),[{t:'……',fn:()=>{ if(callback) callback(); }}]);
+  flushEvents();
+}
 function judgeFinale(){
   const right=FIN.blanks.filter(b=>S.finaleAnswers[b.index]===b.answerToken).length;
   if(right<=1){                       // ≤1 空 → BE【雾中迷失】
@@ -5163,9 +5231,8 @@ function judgeFinale(){
   S.shortSolo=(right===2);
   const verdict=S.completeRun?'verdictFull':(S.shortSolo?'verdictTwo':'verdictPartial');
   const fb=S.completeRun?'你把三空连成了一句话。':(S.shortSolo?'你连上了两空。':'你连上了三空，但手账里还有没读懂的笔。');
-  pushEvent(`<span class="nm">${esc(finText(verdict,fb))}</span><br>
-    <span class="desc">答对 ${right}/3 · 读懂 ${interpretedCount()}/6 · 完整档 ${S.completeRun?'是':'否'}（M7：五枚 done）</span>`,
-    [{t:'抬头看向站牌',fn:()=>showFork()}]);
+  pushEvent(`<span class="nm">${esc(finText(verdict,fb))}</span>`,
+    [{t:'抬头看向站牌',fn:()=>showVerdictConfirm(()=>showFork())}]);
 }
 function showFinale(force){
   if(S.endId) return;
