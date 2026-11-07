@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>雾中车站 · 第5课：主线与终局</title>
+<title>雾中车站</title>
 <style>
 :root{
   --bg:#eef1f2; --panel:#ffffff; --line:#dde4e3;
@@ -94,12 +94,12 @@ nav button.on{color:var(--accent);font-weight:600}
 
 <div id="start">
   <h1>雾 中 车 站</h1>
-  <div class="sub">— 第 5 课 · 主线与终局 —</div>
+  <div class="sub">— 一 趟 穿 雾 的 慢 车 —</div>
   <div class="story" id="intro"></div>
   <input id="name-in" type="text" maxlength="8" placeholder="给自己取个名字" value="旅人">
   <button class="btn primary" data-act="start">登 车</button>
   <button class="btn ghost" data-act="continue" id="btn-continue" style="display:none">继续上次行程</button>
-  <div class="tip">这一课（第三批）：线索三态＝点热点记下 → 找人印证 → 自己圈出原话写下关键词；只有「读懂」才算数。／第 6 区间从手账里逐空选词填空，答对才放行／分岔台灰选项不可点、抉择要二次确认／R5「合上手账」是独立结局。</div>
+  <!-- 开发标记已清理：原文是第 5 课 / 第三批的机制说明，玩家不需要看 -->
 </div>
 
 <div id="phone" style="display:none">
@@ -201,8 +201,24 @@ const STORY = {
       "2026-11-07 批 4 手账双栏 + 答案残页：secondRun.oldRecords.entries 每条加 acquire 字段（谢寻八年 zone1 进区 / 祝颜看雾首次通道A / 钟停着 zone3 进区）；finale.uiTexts.secondRunAnswerFragment 落库（text/hint/grants 逐字采用 A3 拍板）；引擎新增 S.oldRecords 数组 + acquireOldRecord() 三个触发点 + legacyRecordCount() 改读 S.oldRecords.length + RENDERERS.journal 双栏渲染 + showFinale 开场一次（3.7 落地，3.8 每屏顶部展示不实现）+ S.flags.fragmentShown 标记 + newGame/normalizeSave 补 oldRecords/fragmentShown。旧记录碎片计数从批3的 interpretedCount 临时估算改为读真实 S.oldRecords.length，彩蛋四 egg_fog_child 的 condition 自动生效。不碰批1谢寻线、批2祝颜线、批3彩蛋NPC具体交互逻辑。",
       "2026-11-07 收尾·Bug 1 修复副作用留痕：二周目 startFresh 预设非 meta 角色 S.met=1（修「通道 B 候选永远空」），副作用是 knowerHits() 的 'met' 档位对二周目知情人立即命中（知情人开场即 +1 理解档）。已确认合理：二周目玩家带着记忆回来，认识所有常规角色，知情人自然全开；谢寻是 meta、不预设，走二周目初见。不额外改 knowerHits() 或知情人分档逻辑。",
       "2026-11-07 收尾批次：secondRun.gameOver 文案落库（游戏结束 / 感谢您的参与。/ 回到封面），引擎 RENDERERS.gameOver 的 safe() 局部占位过滤保留、零改动；删除 showFork() 入口的 Bug 2 临时控制台诊断打印（诊断已完成使命，Bug 2 已实跑验证 PASS），xieEligible 仍只在函数入口计算一处（bug2_share_calc_probe 锁死）；gameOver.placeholder 引擎不读、属死字段已删（genericEndings.placeholder 是活的，不动）；forkTexts.labelXiexunHE 补键排到下一批单独走，本批不落。",
-      "2026-11-07 批 1 补丁 · forkTexts.labelXiexunHE 补键（嘟嘟拍板单独走一批）：uiTexts.forkTexts 21 → 22 条，新增键取值逐字等于引擎原回退字面量「对谢寻说出你记起的事」——不新写剧情，只把已在产品里跑的文案搬回数据层；showFork() 的 forkText('labelXiexunHE', 回退串) 调用签名不动（其余 20 条 forkText 调用同样带回退，统一保留兜底），补键后数据值优先、回退不再命中。三处同源（权威 JSON / 内嵌 const STORY / clueScaffold-batch1.json）程序化重生成；bug2_share_calc_probe 新增「数据层有键 + 传哨兵回退仍取数据值」断言。"
+      "2026-11-07 批 1 补丁 · forkTexts.labelXiexunHE 补键（嘟嘟拍板单独走一批）：uiTexts.forkTexts 21 → 22 条，新增键取值逐字等于引擎原回退字面量「对谢寻说出你记起的事」——不新写剧情，只把已在产品里跑的文案搬回数据层；showFork() 的 forkText('labelXiexunHE', 回退串) 调用签名不动（其余 20 条 forkText 调用同样带回退，统一保留兜底），补键后数据值优先、回退不再命中。三处同源（权威 JSON / 内嵌 const STORY / clueScaffold-batch1.json）程序化重生成；bug2_share_calc_probe 新增「数据层有键 + 传哨兵回退仍取数据值」断言。",
+      "2026-11-07 批 5 · 多槽存档（嘟嘟指令 3.1–3.6）：新增 STORY.saveSlots（autoSlot / manualSlots / totalSlots / metaKey）与 STORY.multiSlotSave.enabled，引擎在 CFG 里读（CFG 仍是引擎配置，数据层为单一来源，字段缺失有默认兜底）；新增 readSlotMeta / writeSlotMeta / removeSlotMeta / deleteSlot，saveGame() 写完 S 同步写 meta（meta 只存显示用轻量字段，不存 S 全量）；存档页由单槽改为 slots 数组驱动的 4 卡片（自动 + 手动 1/2/3），有档显示周目 · 区间 · 时间 · 最高好感或已通关结局 + 继续/读取 / 覆盖 / 删除，空槽显示「保存到这里」；事件委托新增 save-over / del-slot 两个二次确认分支，save / load 原逻辑保留；CFG.multiSlotSave.enabled=false 回退旧单槽页 saveLegacy()（旧页代码保留、键名不变）。PREFIX 仍 fog5_，afterChange 仍 saveGame('auto')，normalizeSave / export / import / back-to-cover 的 btn-continue 均未动。地点段暂恒为空：mainline.locations 与 S.location 要等地点分区批次才存在，故 meta.location 存 S.location 或 null，不预写假默认值 dining_bar。",
+      "2026-11-08 主线选择文案人话化（嘟嘟指令 1–13）：主线页顶部 desc/gauge 换成口语版（无 R2 / M1 / M2 / 热点）；线索卡状态标签改 raw「记下了 · 还没问」/ pending「问明白了 · 还没写」/ done「记对了」/ wrong「写错了」，并加 q.found 门禁——未点开的卡不再显示「记下了」（旧版 state 恒 raw 导致标题与正文「还没点开」自相矛盾）；按钮改「看看这里有什么」/「去问祝颜」/「去问车上认识的人」/「就是这句：x」；「印证」全部换成问/问过（含 scene tip、热点弹窗、补记弹窗、addLog 两条、重读标题）；通道 A / 通道 B 渲染层清零（祝颜卡回退块 small、A 按钮主标签、两处 addLog 括号）；揭示 / R1 / R2 / M1 / M2 / state: done / wrong=true / interpretedCount 等开发备注从弹窗文案删除，写对改「这一笔，你记下了。／你写的是：x」、写错改「写错了，改不了。／这一笔不会再算了。」；挑 token 弹窗换口语长版；祝颜弹窗括号只留「（trust N）」、通道 B 弹窗括号整行删；重读 raw 改「还没问过，只有原句。」（采纳嘟嘟建议，与全文「问问/问清楚」口吻统一）。数据层 uiTexts.channelBPickTitle「找谁印证？」→「问谁？」。线索的 source / reveals 数据字段、state / wrong / interpretedCount 内部字段、判定链、分岔台、终局问答、手账页一律不动。"
     ]
+  },
+  "saveSlots": {
+    "note": "1 自动 + 3 手动 = 4 个存档位。自动槽每次 afterChange 写；手动槽玩家主动存。键名沿用 fog5_（fog5_auto / fog5_1..3），现有旧档直接可用、无需迁移。改槽位数量只改本块，存档页卡片由 manualSlots 数组驱动。",
+    "autoSlot": "auto",
+    "manualSlots": [
+      "1",
+      "2",
+      "3"
+    ],
+    "totalSlots": 4,
+    "metaKey": "fog5_slotmeta"
+  },
+  "multiSlotSave": {
+    "enabled": true
   },
   "mainline": {
     "status": "规则、祝颜设定与人员编制已定稿（嘟嘟拍板）· 具体台词、第 6 区间抉择文案待写",
@@ -952,7 +968,7 @@ const STORY = {
           "genericDecoysDeprecated": true,
           "genericDecoysNote": "【乙 · 嘟嘟 2026-11-06】genericDecoys 不再被正常候选路径读取：blankPool 走手写候选表，raw/missed 用 spareDecoy 补位。字段与 3 条文案全部保留、不删（旧存档兼容 / 便于回退甲或丙）；仅当某空 options 缺失、blankPool 退回 legacy 算法兜底时才可能触及。g3 永远排不进池的问题随乙自动消失。",
           "channelBWrong": "……这个我说不好。你记下来了，就自己看。",
-          "channelBPickTitle": "找谁印证？",
+          "channelBPickTitle": "问谁？",
           "channelBPickHint": "只列出这个区间里、你认识的人。",
           "channelBResultRight": "{name}说：……（好感 +2）",
           "channelBResultWrong": "{name}说：……（好感 +0）",
@@ -3157,7 +3173,16 @@ const CFG = {
      主页面自动回退到原来的「找祝颜印证这一笔」摆设卡片，旧行为完全恢复。
      三层撤回：软＝改这里；中＝再删 scene() 的一行调用 + 事件委托的一个分支；
      硬＝再删新增函数区块 / chc- CSS / JSON 的 conductorHomeCard。代码保留但不执行。 */
-  conductorHomeCard:{ enabled:true }
+  conductorHomeCard:{ enabled:true },
+  /* ──【2026-11-07 批 5 · 多槽存档】───────────────────────────────────
+     槽位配置的单一来源是数据层 STORY.saveSlots / STORY.multiSlotSave，
+     这里读同一个对象；右边只是字段缺失时的兜底（与 OPEN_TXT 同风格）。
+     multiSlotSave.enabled=false 回退旧单槽存档页 saveLegacy()，键名不变、旧档照读。 */
+  saves: Object.assign(
+    { autoSlot:'auto', manualSlots:['1','2','3'], totalSlots:4, metaKey:'fog5_slotmeta' },
+    STORY.saveSlots || {}
+  ),
+  multiSlotSave: Object.assign({ enabled:true }, STORY.multiSlotSave || {})
 };
 
 /* ─────────────────────────────────────────────────────────────
@@ -3569,7 +3594,7 @@ function sanityCheck(){
     console.warn('[雾中车站·I6] 教学收尾缺「原来是还没到的站」这句逻辑桥。');
   const tvia=(tc.interpret||{}).via||[];
   if(tvia.indexOf('knower')>=0||tvia.indexOf('lover')>=0)
-    console.warn('[雾中车站·I6] c1 的 interpret.via 含通道 A/B 入口，教学枚应只有 tutorial。');
+    console.warn('[雾中车站·I6] c1 的 interpret.via 含 A/B 入口，教学枚应只有 tutorial。');
   /* 【通道B选人印证 · I5】hint 必须按 loverId 索引、6 条 channelB* 文案齐备。
      与数据层 sanityRules.checks[I5] 同源；只从 STORY 取数，启动期不碰 FUI（TDZ）。 */
   const cbUi=(STORY.mainline.clueScaffold.finale||{}).uiTexts||{};
@@ -3644,7 +3669,7 @@ function runTutorial(c,step,notice){
   if(s.type==='pickToken'){
     const note=notice?`<span class="desc">${esc(notice)}</span><br>`:'';
     const opts=(s.tokens||[]).map(k=>({
-      t:'圈出：'+esc(tokenText(tutToken(c,k)||{key:k,text:''})),
+      t:'就是这句：'+esc(tokenText(tutToken(c,k)||{key:k,text:''})),
       fn:()=>tutorialPick(c,k)
     }));
     opts.push(skip);
@@ -3795,7 +3820,7 @@ const RENDERERS = {
       ? `<div class="card"><div class="ttl">开 场<small>第 ${S.runIndex} 趟</small></div><div class="desc">${esc(openingText())}</div></div>`
       : '';
     h += `<div class="sec">第 ${S.zone} 区间 · 车厢</div>
-      <div class="tip">行动点 ${S.actionsLeft}/${actionTotal()}，${esc(apText('tipNeutral'))}。线索要去「主线」页点热点才记下（不耗点）；初见搭话、背景NPC 闲聊也不耗点；陪伴／深聊／印证／首次找人问话才花点。<br>车开到哪一节，能碰上的知情人不一样；回访补听不额外花点。</div>`;
+      <div class="tip">行动点 ${S.actionsLeft}/${actionTotal()}，${esc(apText('tipNeutral'))}。线索要去「主线」页看看有什么才记下（不耗点）；初见搭话、背景NPC 闲聊也不耗点；陪伴／深聊／问清楚／首次找人问话才花点。<br>车开到哪一节，能碰上的知情人不一样；回访补听不额外花点。</div>`;
     activeLovers().forEach(L=>{
       const sr=srLover(L);                       // 【二周目扩面第一批】五位常规角色二周目均为 true
       const xie=sr && L.id==='xie_xun';          // 【批 1】谢寻：二周目唯一 meta 恋人，陪伴加好感、有专属旧照片事件
@@ -3809,13 +3834,13 @@ const RENDERERS = {
       // 【批 1】谢寻的旧照片由 maybeTriggerXieXunPhoto 在 zone4+ 自动触发，深度按钮对其整条不渲染。
       const deepReady=!sr && met && a>=CFG.deepUnlock && !deepDone;
       const gauge = sr
-        ? (xie ? `好感 ${a} ／ 旧照片解锁 ${CFG.threshold.xie_xun.secondRun.deepUnlock} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`
+        ? (xie ? `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`
                : `二周目 · 已陪伴 ${S.compTimes[L.id]||0} 次 · 陪伴不加好感`)
-        : `好感 ${a} ／ 门槛 ${thText(L)} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`;
+        : `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`;
       const compSub = sr
-        ? (xie ? (compDone?'本区间已陪伴':'+'+L.secondRun.companion.aff+' 好感 · 每区间 1 次')
+        ? (xie ? (compDone?'本区间已陪伴':'每区间 1 次')
                : (compDone?'本区间已陪伴':'0 点 · 不加好感 · 每区间 1 次'))
-        : (!met?'先搭句话':compDone?'本区间已陪伴':'+'+CFG.companionBonus+' 好感 · 每区间 1 次');
+        : (!met?'先搭句话':compDone?'本区间已陪伴':'不耗点 · 每区间 1 次');
       h += `<div class="card">
         <div class="ttl">${esc(L.name)}<small>${thLabel(L)} · ${tierName(L)}</small></div>
         <div class="desc">${esc(L.tag)}<br>${esc(L.car)}</div>
@@ -3844,7 +3869,7 @@ const RENDERERS = {
     else if(zy) h += `<div class="card">
       <div class="ttl">${esc(zy.name)}<small>雾线引路 · trust ${S.trust}</small></div>
       <div class="desc">她只递半句提醒，不下指令；台词按 trust 实际档位取（M4）。</div>
-      <button class="btn" data-act="zhuyan" ${zCan?'':'disabled'}><b>找祝颜印证这一笔</b><small>${zCan?'通道 A · 花 1 点 · trust +1':'先在主线页点热点记下这一笔，且尚未解读'}</small></button>
+      <button class="btn" data-act="zhuyan" ${zCan?'':'disabled'}><b>去问祝颜</b><small>${zCan?'花 1 点':'先在主线页看看有什么，且还没问过'}</small></button>
     </div>`;
     h += `<div class="sec">车 厢 里 的 其 他 人</div>`;
     BG_ALL.forEach(n=>{
@@ -3878,13 +3903,14 @@ const RENDERERS = {
     let h = `<div class="sec">主 线 · 这 趟 车 的 规 则</div>
       <div class="card">
         <div class="ttl">手账进度<small>记下 ${n} / ${CLUES.length} · 读懂 ${y} / ${CLUES.length}</small></div>
-        <div class="desc">点「热点」才记下一笔；记下之后还得找人印证、自己圈出原话写下关键词，才算读懂（R2）。别人转述的带不走。</div>
-        <div class="gauge">祝颜 trust ${S.trust} ｜ 读懂 ${y} 笔（沈砚门槛 ${CFG.threshold.hard.interpretedCount}）</div>
-        <div class="gauge">从第 2 区间起，写错关键词就改不了；选项都来自你自己圈过的原话片段（M1 / M2）。</div>
+        <div class="desc">把看见的东西先记下来。再找人问清楚，自己写下答案，才算真的记住。</div>
+        <div class="gauge">别人说的没法带走，写错了就改不了，要想清楚再落笔哦~</div>
       </div>`;
     CLUES.forEach(c=>{
       const q=clueOf(c.zone);
-      const tag={raw:'已记下 · 待解读',pending:'已印证 · 待写下',done:'已读懂'}[q.state]||'—';
+      /* 状态标签用人话；q.found 为 false 时不显示状态（没点开就没有状态），
+         否则会与正文「（还没点开这一区间的热点）」自相矛盾。 */
+      const tag = q.found ? ({raw:'记下了 · 还没问',pending:'问明白了 · 还没写',done:'记对了'}[q.state]||'—') : '';
       let body='',btns='';
       if(c.id==='c1' && q.state!=='done'){
         /* 【C1 三步教学】教学枚唯一入口：只有「进入教学」，不渲染通道 A/B，
@@ -3893,22 +3919,24 @@ const RENDERERS = {
         btns=`<button class="btn" data-act="tutorial"><b>${esc(pendingText(tutUi(c).entryLabel,'进入教学 · 第 1 笔'))}</b><small>${esc(pendingText(tutUi(c).entryHint,'不耗行动点 · 点错可以重来'))}</small></button>`;
       } else if(!q.found){
         const notYet=c.zone>S.zone;   // 未抵达的区间：卡片可见，但没有热点按钮
-        body=(notYet?'（车还没开到这一节）':'（还没点开这一区间的热点）')+'来源 · '+esc(c.source);
-        btns=notYet?'':`<button class="btn" data-act="hotspot" data-z="${c.zone}"><b>点开热点 · 记下这一笔</b><small>不耗行动点${c.hotspot.trustDelta?' · trust +'+c.hotspot.trustDelta:''}</small></button>`;
+        /* 线索的 source 字段是内部开发备注（设计来源 / 呼应原文哪一段），不上屏；
+           数据层原样保留，渲染层不显示。下面紧跟的热点按钮本身就是引导。 */
+        body=(notYet?'（车还没开到这一节）':'（这一区间还没看过）');
+        btns=notYet?'':`<button class="btn" data-act="hotspot" data-z="${c.zone}"><b>看看这里有什么</b><small>不耗行动点${c.hotspot.trustDelta?' · trust +'+c.hotspot.trustDelta:''}</small></button>`;
       } else if(q.state==='raw'){
-        body='记下的是：'+esc(c.record)+' ｜ 揭示 '+esc(c.reveals);
-        btns=`<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="conductor_f"><b>找祝颜印证（通道 A）</b><small>${c.interpret.cost?'花 '+c.interpret.cost+' 点':'不耗点'} · trust +1</small></button>`
+        body='记下的是：'+esc(c.record);
+        btns=`<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="conductor_f"><b>去问祝颜</b><small>${c.interpret.cost?'花 '+c.interpret.cost+' 点':'不耗点'} · trust +1</small></button>`
            + channelBButton(c);   /* 【2026-11-06 选人印证】B 按钮：via 白名单 / 候选空灰按钮 / 文案动态 */
       } else if(q.state==='pending'){
         /* 【②】forkFlag 枚在整句上方先给提示 + 题干；blank 枚不受影响 */
-        body=quizHead(c)+'整句：'+esc(fullSentence(c))+(q.wrong?'<br><span class="desc">这一笔已经写错，改不了了。</span>':'');
+        body=quizHead(c)+'整句：'+esc(fullSentence(c))+(q.wrong?'<br><span class="desc">这一笔写错了，改不了。</span>':'');
         if(!q.wrong) btns=c.tokens.map(t=>`<button class="btn" data-act="write" data-z="${c.zone}" data-k="${esc(t.key)}"><b>${esc(tokenText(t))}</b></button>`).join('');
       } else {
-        body='记下的是：'+esc(c.record)+' ｜ 写下的关键词：'+esc(keywordLabel(c,q.keyword))+' ｜ 揭示 '+esc(c.reveals)
+        body='记下的是：'+esc(c.record)+' ｜ 写下的关键词：'+esc(keywordLabel(c,q.keyword))
            + (q.via==='tutorial'?'<br><span class="desc">'+esc(tutTag(c))+'</span>':'');
       }
       h += `<div class="card ${q.found?'':'ghost'}">
-        <div class="ttl">第 ${c.zone} 区间 · ${esc(c.id)}<small>${tag}${q.wrong?' · 写错':''}</small></div>
+        <div class="ttl">第 ${c.zone} 区间<small>${tag}${q.wrong?' · 写错了':''}</small></div>
         <div class="desc">${esc(c.hook)}</div>
         <div class="gauge">${body}</div>
         ${btns}
@@ -3925,15 +3953,12 @@ const RENDERERS = {
   },
 
   journal(){
-    let h=`<div class="sec">好 感 与 门 槛</div>`;
+    let h=`<div class="sec">好 感 与 关 系</div>`;
     activeLovers().forEach(L=>{
       const ok=reached(L), a=S.aff[L.id]||0;
-      const xie=srLover(L) && L.id==='xie_xun';   // 【批 1】谢寻二周目：阈值与解锁线读专属配置，不读普通 HE 门槛
-      const thr = xie ? CFG.threshold.xie_xun.secondRun.deepUnlock : thText(L);
-      const deepLine = xie ? `旧照片解锁需好感 ≥${thr}` : `深度解锁需好感 ≥${CFG.deepUnlock}`;
       h+=`<div class="card"><div class="ttl">${esc(L.name)}<small class="${ok?'done':''}">${ok?'可达成':'未达标'}</small></div>
-        <div class="gauge">好感 ${a} ／ ${thr} ｜ ${tierName(L)}（第 ${tierOf(L)} 阶）</div>
-        <div class="gauge">初见 ${S.met[L.id]?'✓':'—'} ｜ 陪伴 ${S.compTimes[L.id]||0} 次 ｜ 深度 ${S.deep[L.id]?'✓':'—'} ｜ ${deepLine}</div></div>`;
+        <div class="gauge">好感 ${a} ｜ ${tierName(L)}（第 ${tierOf(L)} 阶）</div>
+        <div class="gauge">初见 ${S.met[L.id]?'✓':'—'} ｜ 陪伴 ${S.compTimes[L.id]||0} 次 ｜ 深度 ${S.deep[L.id]?'✓':'—'}</div></div>`;
     });
     h+=`<div class="card"><div class="ttl">属性</div>
       <div class="gauge">记下 ${clueCount()} 笔 ｜ 读懂 ${interpretedCount()} 笔 ｜ 祝颜 trust ${S.trust}</div>
@@ -4038,7 +4063,54 @@ const RENDERERS = {
       <button class="btn ghost" data-act="back-to-cover">${esc(safe(go.button,'回到封面'))}</button>`;
   },
 
+  /* 【2026-11-07 批 5 · 多槽存档】slots 数组驱动，不写死 4 张卡：
+     自动槽（只读快照：继续 / 删除）+ 手动槽（读取 / 覆盖 / 删除，空槽＝保存到这里）。
+     卡片只读 meta（轻量显示字段），不解析 S 全量——所有历史槽都能被旧档正常渲染。 */
   save(){
+    if(!CFG.multiSlotSave.enabled) return RENDERERS.saveLegacy();
+    const meta=readSlotMeta();
+    const slots=[{id:CFG.saves.autoSlot,label:'自动存档'}]
+      .concat((CFG.saves.manualSlots||[]).map(id=>({id,label:'存档 '+id})));
+    const fmt=t=>{ const d=new Date(t); const p=n=>String(n).padStart(2,'0');
+      return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); };
+    const zoneLbl=m=>(Number(m.zone)>=CFG.zones)?'终点站':('第 '+m.zone+' 区间');
+    const locLbl=m=>{ const L=(STORY.mainline.locations||{})[m.location]; return (L&&L.name)?L.name:''; };
+    let h=`<div class="sec">存 档</div>
+      <div class="tip">共 ${CFG.saves.totalSlots} 个存档位：${(CFG.saves.manualSlots||[]).length} 个手动 + 1 个自动。自动存档每次改动都更新；手动存档由你决定。周目记忆（通关 ${M.playCount} 次）单独存，读档不冲。</div>`;
+    slots.forEach(s=>{
+      const m=meta[s.id]||null;
+      /* 有 meta 走完整卡片；没有 meta 但存档正文还在（旧档 / 换设备导入）也算「有档」，
+         显示「刚开局」而不是空槽——否则旧档会看不见、点不到读取。 */
+      const has=!!m || hasSlot(s.id);
+      const isAuto=(s.id===CFG.saves.autoSlot);
+      if(has){
+        const sub=m?`${(Number(m.runIndex)===2?'二周目':'一周目')} · ${zoneLbl(m)}${locLbl(m)?' · '+esc(locLbl(m)):''} · ${fmt(m.savedAt)}`:'存档时间未知';
+        const desc=m?(m.endName?('已通关：'+esc(m.endName)):(m.topAff?('最高好感：'+esc(m.topAff.name)+' '+m.topAff.value):'刚开局')):'刚开局';
+        h+=`<div class="card">
+          <div class="ttl">${s.label}<small>${sub}</small></div>
+          <div class="desc">${desc}</div>
+          <div class="btn-row">
+            <button class="btn" data-act="load" data-id="${s.id}">${isAuto?'继续':'读取'}</button>
+            ${isAuto?'':`<button class="btn" data-act="save-over" data-id="${s.id}">覆盖</button>`}
+            <button class="btn ghost" data-act="del-slot" data-id="${s.id}">删除</button>
+          </div>
+        </div>`;
+      } else {
+        h+=`<div class="card ghost">
+          <div class="ttl">${s.label}<small>空</small></div>
+          <div class="desc">${isAuto?'（开始游戏后自动生成）':'还没有存档。'}</div>
+          ${isAuto?'':`<button class="btn" data-act="save" data-id="${s.id}">保存到这里</button>`}
+        </div>`;
+      }
+    });
+    h+=`<button class="btn" data-act="export">导出存档码</button>
+      <button class="btn" data-act="import">导入存档码</button>
+      <button class="btn" data-act="restart" style="color:var(--warn)">重新登车</button>`;
+    return h;
+  },
+  /* 【批 5】旧单槽存档页：CFG.multiSlotSave.enabled=false 时的回退目标。
+     与改造前逐字一致，键名仍 fog5_1；保留是为了让开关有真实可回退的落点，不是死代码。 */
+  saveLegacy(){
     return `<div class="sec">存 档</div>
       <div class="tip">每次改动自动存。周目记忆（通关 ${M.playCount} 次）单独存，读档不冲。</div>
       <div class="btn-row"><button class="btn" data-act="save" data-id="1">存入槽位 1</button><button class="btn" data-act="load" data-id="1">读取槽位 1</button></div>
@@ -4049,6 +4121,8 @@ const RENDERERS = {
 };
 
 function thLabel(L){ return {normal:'普通',hard:'困难',conditional:'条件',meta:'隐藏'}[L.difficulty]||''; }
+/* 【2026-11-07 清理批】门槛数值一律不上屏：全部调用点已删，此函数只留作内部口径查询。
+   判定本身仍走 reached() / CFG.threshold，改数值只改数据层的 CFG，不动这里。 */
 function thText(L){
   if(L.difficulty==='normal') return '≥'+CFG.threshold.normal;
   if(L.difficulty==='hard') return `好感≥${CFG.threshold.hard.aff} 且 读懂≥${CFG.threshold.hard.interpretedCount} 笔`;
@@ -4069,8 +4143,8 @@ function reached(L){
 function deepHint(L,deepDone,met,a){
   if(deepDone) return '（已完成）';
   if(!met) return '先搭句话';
-  if(a<CFG.deepUnlock) return `好感 ${a} / ${CFG.deepUnlock} 解锁`;
-  return '深度事件 · 好感 +'+CFG.deepBonus;
+  if(a<CFG.deepUnlock) return '还不到时候';
+  return '深度事件';
 }
 function achievedList(){ return activeLovers().filter(reached); }
 
@@ -4280,7 +4354,7 @@ function actKnowYuXing(N){
       const prev=S.knowBonus[id]||0, delta=Math.max(0,CROSS.bonus-prev);
       S.knowBonus[id]=CROSS.bonus;
       if(delta>0&&LOVER_BY[CROSS.needMet]) S.aff[CROSS.needMet]=(S.aff[CROSS.needMet]||0)+delta;
-      addLog('用手账第 '+CROSS.clueZone+' 笔印证了俞星的半句话，理解 +'+delta+'。');
+      addLog('用手账第 '+CROSS.clueZone+' 笔问出了俞星的半句话，理解 +'+delta+'。');
       pushEvent(`<span class="nm">${esc(N.name)}</span><br>他盯着那一行字看了很久，才把后半句说完：<br>${esc(N.text||'')}<br><span class="desc">（转述的没用，得是你自己记下来的。）</span>`,[{t:'记进手账',fn:()=>{}}]);
     }});
   }
@@ -4310,7 +4384,7 @@ function actHotspot(z){
   addLog('点开第 '+c.zone+' 区间的热点，记下：'+c.record+(td?'（trust +'+td+'）':'')+'。');
   pushEvent(`<span class="nm">手账 · 第 ${c.zone} 笔</span><br>${esc(c.hook)}<br>
     <span class="desc">记下的是：${esc(c.record)}${td?' ｜ trust +'+td:''}</span><br>
-    <span class="desc">这一笔还只是「记下」，没读懂。去主线页找人印证，再自己写下关键词。</span>`,
+    <span class="desc">这一笔还只是记下，还没问过。去主线页找人问问，再自己写下答案。</span>`,
     [{t:'先记下这些',fn:()=>{}}]);
   afterChange(); flushEvents();
 }
@@ -4361,19 +4435,19 @@ function channelBButton(c){
   const u=channelBUi(), cand=channelBCandidates(c);
   const costTxt=c.interpret.cost?'花 '+c.interpret.cost+' 点':'不耗点';
   if(!cand.length)
-    return `<button class="btn ghost" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>${esc(pendingText(u.channelBNone,'还没认识车上的人。'))}</b><small>${costTxt} · 不给 trust、不碰深度</small></button>`;
-  return `<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>找车上认识的人印证（好感 +${CFG.channelBAff}）</b><small>${costTxt} · 不给 trust、不碰深度</small></button>`;
+    return `<button class="btn ghost" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>${esc(pendingText(u.channelBNone,'还没认识车上的人。'))}</b><small>${costTxt}</small></button>`;
+  return `<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>去问车上认识的人</b><small>${costTxt}</small></button>`;
 }
 function actInterpret(z,via,picked){
   const c=clueByZone(z); if(!c) return;
   /* 【C1 三步教学】4.3 入口：教学枚只走弹窗，不走通道 A/B、不扣点、不进 c2–c6 判定链。 */
   if(c.id==='c1' && (c.interpret.via||[]).indexOf('tutorial')>=0) return tutorialEntry();
   const q=clueOf(c.zone);
-  if(!q.found){ pushEvent('你还没在这一区间点开热点，手账上是空的。',[{t:'回去看看',fn:()=>{}}]); return flushEvents(); }
-  if(q.state!=='raw'){ pushEvent('这一笔已经印证过了。',[{t:'合上手账',fn:()=>{}}]); return flushEvents(); }
+  if(!q.found){ pushEvent('你还没在这一区间看看有什么，手账上是空的。',[{t:'回去看看',fn:()=>{}}]); return flushEvents(); }
+  if(q.state!=='raw'){ pushEvent('这一笔已经问过了。',[{t:'合上手账',fn:()=>{}}]); return flushEvents(); }
   /* 3.2 门禁②：即使绕过按钮直接调用，也不让 c1/c6 走通道 B。 */
   if(via!=='conductor_f' && !channelBAllowed(c)){
-    pushEvent('<span class="desc">这一笔只能找祝颜印证。</span>',[{t:'知道了',fn:()=>{}}]);
+    pushEvent('<span class="desc">这一笔只能去问祝颜。</span>',[{t:'知道了',fn:()=>{}}]);
     return flushEvents();
   }
   if(via!=='conductor_f'){
@@ -4391,7 +4465,7 @@ function actInterpret(z,via,picked){
          channelBCandidates 仍只按 S.met 过滤（恋人全车常驻、引擎无 inZone），最多列 5 人，
          5 人全有 note，故 <small> 永不空。正确项第一 / 强干扰第二 / 3 条弱干扰的排序在数据层。 */
       const u=channelBUi();
-      pushEvent(`<span class="nm">${esc(pendingText(u.channelBPickTitle,'找谁印证？'))}</span><br>`
+      pushEvent(`<span class="nm">${esc(pendingText(u.channelBPickTitle,'问谁？'))}</span><br>`
         + `<span class="desc">${esc(pendingText(u.channelBPickHint,'只列出这个区间里、你认识的人。'))}</span>`,
         cand.map(L=>({t:esc(L.name),hint:esc(channelBNote(c,L.id)),fn:()=>actInterpret(z,'channelB',L.id)})));
       return flushEvents();
@@ -4405,15 +4479,15 @@ function actInterpret(z,via,picked){
     acquireOldRecord('zhuyan_watching_fog');   // 【批 4】首次通道 A 获得「祝颜看雾」（内部幂等）
     q.via='conductor_f';
     line=`<span class="nm">${esc((KEY_BY['conductor_f']||{}).name||'祝颜')}</span><br>${esc(trustLine(c))}<br>
-      <span class="desc">（第 ${c.zone} 枚 · 按当前线索取词 / 甲 · trust ${S.trust}）</span>`;
+      <span class="desc">（trust ${S.trust}）</span>`;
     q.state='pending';                      // Q2：NPC 印证过，待玩家自己写
-    addLog('印证了第 '+c.zone+' 笔（通道 A），待写下关键词。');
+    addLog('问了第 '+c.zone+' 笔，待写下关键词。');
     /* 【批 2】通道 A 也给二周目高档台词：trust 到档位时，先播她自己的事，再播解读结果。
        maybePlaySecondRunTier 内部若没有新高档会直接 callback，不影响一周目 / 二周目未达档位的情况。 */
     maybePlaySecondRunTier(()=>{
       pushEvent(line+`<br><br>`+quizHead(c)+`<span class="nm">整句</span><br>${esc(fullSentence(c))}
-        <br><span class="desc">看清整句，再从下面圈出原话写下关键词。写错就改不了（M2）。</span>`,
-        c.tokens.map(t=>({t:'圈出：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)})));
+        <br><span class="desc">看清整句话之后，需要就从选项中挑一句你觉得最对的关键点，注意：选错了就不能更改了哦~</span>`,
+        c.tokens.map(t=>({t:'就是这句：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)})));
       afterChange(); flushEvents();
     });
     return;
@@ -4426,14 +4500,13 @@ function actInterpret(z,via,picked){
     q.via='lover'; q.speaker=picked;       // 存档如实记录出场者，不再写假 knower
     const tpl=right?pendingText(u.channelBResultRight,'{name}说：……（好感 +2）')
                    :pendingText(u.channelBResultWrong,'{name}说：……（好感 +0）');
-    line=`<span class="nm">${esc(channelBTemplate(tpl,L.name,text))}</span><br>
-      <span class="desc">（${right?'选对':'选错'} · 好感 +${right?CFG.channelBAff:0} · 不给 trust、不碰深度 / 选人印证）</span>`;
+    line=`<span class="nm">${esc(channelBTemplate(tpl,L.name,text))}</span>`;
     q.state='pending';                      // Q2：NPC 印证过，待玩家自己写
-    addLog('印证了第 '+c.zone+' 笔（通道 B），待写下关键词。');
+    addLog('问了第 '+c.zone+' 笔，待写下关键词。');
     /* 【②】forkFlag 枚（C5/C6）先给提示 + 题干，再给整句；blank 枚 quizHead 返回空串 */
     pushEvent(line+`<br><br>`+quizHead(c)+`<span class="nm">整句</span><br>${esc(fullSentence(c))}
-      <br><span class="desc">看清整句，再从下面圈出原话写下关键词。写错就改不了（M2）。</span>`,
-      c.tokens.map(t=>({t:'圈出：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)})));
+      <br><span class="desc">看清整句话之后，需要就从选项中挑一句你觉得最对的关键点，注意：选错了就不能更改了哦~</span>`,
+      c.tokens.map(t=>({t:'就是这句：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)})));
     afterChange(); flushEvents();
   }
 }
@@ -4451,13 +4524,13 @@ function actWriteKeyword(z,key){
   if(key===c.keyword.key){
     q.state='done'; q.keyword=key;       // Q2 定稿：按 id / key 匹配，无自由输入
     addLog('写下第 '+c.zone+' 笔的关键词：'+t.key+'（已读懂 '+interpretedCount()+' 笔）。');
-    pushEvent(`${forkUi}<span class="nm">这一笔，你读懂了</span><br>${esc(tokenText(t))}<br>
-      <span class="desc">写下：${esc(keywordLabel(c,key))}（state: done ｜ 写下的关键词不会被抹掉 / R2）</span>`,[{t:'记进手账',fn:()=>{}}]);
+    pushEvent(`${forkUi}<span class="nm">这一笔，你记下了。</span><br>${esc(tokenText(t))}<br>
+      <span class="desc">你写的是：${esc(keywordLabel(c,key))}</span>`,[{t:'记进手账',fn:()=>{}}]);
   } else {
     q.wrong=true;                        // P4：state 停在 pending，禁止改写；不新增第四态
     addLog('第 '+c.zone+' 笔的关键词写错了，这一笔改不了。');
-    pushEvent(`${forkUi}<span class="nm">写错了，改不了</span><br>${esc(tokenText(t))}<br>
-      <span class="desc">（state 仍是 pending ｜ wrong=true，interpretedCount 不增加 / M2 P4）</span>`,[{t:'合上手账',fn:()=>{}}]);
+    pushEvent(`${forkUi}<span class="nm">写错了，改不了。</span><br>${esc(tokenText(t))}<br>
+      <span class="desc">这一笔不会再算了。</span>`,[{t:'合上手账',fn:()=>{}}]);
   }
   afterChange(); flushEvents();
 }
@@ -4474,20 +4547,20 @@ function actReread(z){
   }
   if(q.state==='raw'){
     pushEvent(`<span class="nm">手账 · 第 ${z} 笔 · 已记下</span><br>${esc(c.hook)}<br>
-      <span class="desc">记下的是：${esc(c.record)} ｜ 揭示 ${esc(c.reveals)}</span><br>
-      <span class="desc">还没印证，只有原话，没有解释。</span>`,[{t:'合上这一页',fn:()=>{}}]);
+      <span class="desc">记下的是：${esc(c.record)}</span><br>
+      <span class="desc">还没问过，只有原句。</span>`,[{t:'合上这一页',fn:()=>{}}]);
     return flushEvents();
   }
   if(q.state==='pending'){
-    const opts=q.wrong?[]:c.tokens.map(t=>({t:'圈出：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)}));
+    const opts=q.wrong?[]:c.tokens.map(t=>({t:'就是这句：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)}));
     if(!opts.length) opts.push({t:'合上这一页',fn:()=>{}});
     /* 【②】重读 forkFlag 枚时同样补提示 + 题干 */
-    pushEvent(`<span class="nm">手账 · 第 ${z} 笔 · ${q.wrong?'已写错':'已印证'}</span><br>${quizHead(c)}${esc(fullSentence(c))}
+    pushEvent(`<span class="nm">手账 · 第 ${z} 笔 · ${q.wrong?'已写错':'问过了'}</span><br>${quizHead(c)}${esc(fullSentence(c))}
       ${q.wrong?'<br><span class="desc">你写错了，改不了。</span>':'<br><span class="desc">看清整句，再圈出原话写下关键词（写错不可逆）。</span>'}`,opts);
     return flushEvents();
   }
   pushEvent(`<span class="nm">手账 · 第 ${z} 笔 · 已读懂</span><br>${esc(c.hook)}<br>
-    <span class="desc">记下的是：${esc(c.record)} ｜ 关键词：${esc(keywordLabel(c,q.keyword))} ｜ 揭示 ${esc(c.reveals)}</span>
+    <span class="desc">记下的是：${esc(c.record)} ｜ 关键词：${esc(keywordLabel(c,q.keyword))}</span>
     ${q.via==='tutorial'?'<br><span class="desc">'+esc(tutTag(c))+'</span>':''}`,
     [{t:'合上这一页',fn:()=>{}}]);
   flushEvents();
@@ -4744,7 +4817,7 @@ function useFragment(){
       q.found=true; q.state='raw'; q.via='fragment';
       addLog('用残页补记了第 '+c.zone+' 笔，待解读。');
       afterChange();
-      pushEvent(`<span class="desc">补记了第 ${c.zone} 笔。去主线页找人印证，再自己写下关键词。</span>`,[{t:'知道了',fn:()=>{}}]);
+      pushEvent(`<span class="desc">补记了第 ${c.zone} 笔。去主线页找人问问，再自己写下答案。</span>`,[{t:'知道了',fn:()=>{}}]);
       flushEvents();
     }})));
   flushEvents();
@@ -5389,7 +5462,45 @@ function flushEvents(){
 
 /* ---------- ⑧ 存档 ---------- */
 const PREFIX='fog5_';
-function saveGame(slot){ try{ localStorage.setItem(PREFIX+slot, JSON.stringify(S)); }catch(e){} }
+/* 【批 5 · 多槽存档】槽位元数据：自动槽与手动槽共用一张表，键是槽位 id（auto / 1 / 2 / 3）。
+   只存**显示用的轻量字段**，不存 S 全量——卡片渲染只读这张表、不解析存档正文，
+   所以没有 meta 的旧档（fog5_auto / fog5_1）也能正常进页面，显示「刚开局」、下次保存后补齐。
+   location 存 S.location 或 null：地点表要等地点分区批次才落地，这里不预写假默认值。 */
+function readSlotMeta(){
+  try{ return JSON.parse(localStorage.getItem(CFG.saves.metaKey)||'{}'); }
+  catch(e){ return {}; }
+}
+/* 槽位里有没有存档正文：卡片判「有档 / 空槽」用这个，而不是只看 meta。
+   旧档可能只有 fog5_1、没有 slotmeta，那时仍要能读，只是显示「刚开局 / 时间未知」。 */
+function hasSlot(slot){
+  try{ return !!localStorage.getItem(PREFIX+slot); }catch(e){ return false; }
+}
+function writeSlotMeta(slot){
+  const all=readSlotMeta();
+  const topAff=Object.entries(S.aff||{}).sort((a,b)=>b[1]-a[1])[0];
+  all[slot]={
+    savedAt: Date.now(),
+    runIndex: S.runIndex||1,
+    zone: S.zone,
+    location: S.location||null,
+    endName: S.endName||null,
+    topAff: topAff ? {id:topAff[0], name:(LOVER_BY[topAff[0]]||{}).name||topAff[0], value:topAff[1]} : null
+  };
+  try{ localStorage.setItem(CFG.saves.metaKey, JSON.stringify(all)); }catch(e){}
+}
+function removeSlotMeta(slot){
+  const all=readSlotMeta(); delete all[slot];
+  try{ localStorage.setItem(CFG.saves.metaKey, JSON.stringify(all)); }catch(e){}
+}
+function saveGame(slot){
+  try{
+    localStorage.setItem(PREFIX+slot, JSON.stringify(S));
+    writeSlotMeta(slot);
+  }catch(e){}
+}
+function deleteSlot(slot){
+  try{ localStorage.removeItem(PREFIX+slot); removeSlotMeta(slot); }catch(e){}
+}
 /* 【2.1 / H2】存档兼容：不用 Object.assign 浅合并（会把新的 clue 对象覆盖成旧布尔）。
    显式搬字段 + 显式遍历 6 个 zone 重建 S.clue：旧 true → done + 该枚默认 key；
    旧 false / 缺失 → raw。映射成 done 是唯一不惩罚老玩家的解（旧问答本就直接判通关）。 */
@@ -5525,7 +5636,9 @@ function openSecondRunEntry(){
                {t:'再想想',fn:()=>{}}]);
   flushEvents();
 }
-function afterChange(){ saveGame('auto'); renderAll(); }
+/* 【批 5 · 多槽存档】删除自动槽的那一次点击不要再把它写回来（见 del-slot 分支）。 */
+let skipAutoSaveOnce=false;
+function afterChange(){ if(skipAutoSaveOnce){ skipAutoSaveOnce=false; } else { saveGame('auto'); } renderAll(); }
 /* H2：一次性、非阻塞的迁移提示；不打断读档，也不进事件队列 */
 function showToast(msg){
   const el=$('toast'); if(!el) return;
@@ -5582,6 +5695,22 @@ document.addEventListener('click', e=>{
   if(act==='goto-mainline'){ S.tab='mainline'; renderAll(); return; }
   if(act==='finale'){ eventQueue=[]; return showFinale(true); }
   if(act==='next') return nextZone();
+  /* 【批 5 · 多槽存档】覆盖 / 删除都走二次确认（复用 pushEvent 弹层，不新增 DOM、不写 S）。
+     自动槽不提供「覆盖」——它是本局的实时快照，只能读或删。
+     删除自动槽时置 skipAutoSaveOnce：否则本分支随后的 afterChange() 会立刻把它写回来，
+     玩家会看到「删了又出现」。只跳过这一次写，正常游玩仍每次改动自动存。 */
+  if(act==='save-over'){
+    pushEvent('覆盖这个存档？原来的会被替换。',
+      [{t:'覆盖',fn:()=>{ saveGame(id); }},
+       {t:'再想想',fn:()=>{}}]);
+    flushEvents(); return;
+  }
+  if(act==='del-slot'){
+    pushEvent('删除这个存档？删除后不能恢复。',
+      [{t:'删除',fn:()=>{ if(id===CFG.saves.autoSlot) skipAutoSaveOnce=true; deleteSlot(id); }},
+       {t:'再想想',fn:()=>{}}]);
+    flushEvents(); return;
+  }
   if(act==='save'){ saveGame(id); addLog('已存入槽位 '+id+'。'); return afterChange(); }
   if(act==='load'){ if(loadGame(id)){ addLog('读取了槽位 '+id+'。'); eventQueue=[]; } return afterChange(); }
   /* 【2026-11-07 批 B′】一局走完：合上手账 → 感谢游玩画面 → 回到封面。
@@ -5610,7 +5739,7 @@ document.addEventListener('click', e=>{
     try{ S=normalizeSave(JSON.parse(decodeURIComponent(atob(code.trim())))); afterChange(); }catch(err){ alert('存档码无效。'); } return; }
 });
 
-$('intro').innerHTML='大雾漫过铁轨，列车临时停在一座不存在的站。<br><br>你手里攥着一本空白手账——这一程遇见的每个人、每件小事，都该被记下来。<br><br><em>（第 6 课：初见 → 陪伴 → 深聊，有些事得先聊过才问得出口；还有些条件，车上没人会告诉你。）</em>';
+$('intro').innerHTML='大雾漫过铁轨，列车临时停在一座不存在的站。<br><br>你手里攥着一本空白手账——这一程遇见的每个人、每件小事，都该被记下来。';
 if(localStorage.getItem(PREFIX+'auto')) $('btn-continue').style.display='block';
 </script>
 </body>
