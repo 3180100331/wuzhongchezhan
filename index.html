@@ -66,6 +66,31 @@ main::-webkit-scrollbar{width:0}
 .chc-hint{font-size:11px;opacity:.45;margin-top:4px}
 .chc-btn{margin-top:8px;padding:6px 14px;font-size:13px;background:var(--accent);color:#fff;border:0;border-radius:6px;cursor:pointer}
 .chc-secondrun{margin-top:8px;font-size:12px;opacity:.55;font-style:italic}
+/* 【角色头像 v1】56px 圆形，左侧固定，右侧文字自适应。头像 div 内先放 <img>；
+   图挂了 img 自己 remove()，div 变空 → .avatar:empty::before 用 data-fb 补首字。
+   这样「有图 / 没图 / 图 404」三种情况都有内容，布局不塌、不报错。
+   .card-body 的 min-width:0 是防长文案（tag、按钮小字）撑破 flex 的必须项。 */
+.card-head{display:flex;gap:10px;align-items:flex-start}
+.avatar{flex:0 0 56px;width:56px;height:56px;border-radius:50%;
+  background:var(--accent-soft);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:600;color:var(--accent);
+  border:1px solid var(--line);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar:empty::before{content:attr(data-fb)}
+.card-body{flex:1;min-width:0}
+.chc-head{display:flex;gap:10px;align-items:flex-start}
+/* 【地点分区 v2】独立前缀 zone-loc- / loc- / staff-sec，不碰既有样式；
+   enabled=false 时这些 class 一个都不会渲染出来（scene() 走旧分支）。
+   标签栏换行铺开（11 个全可见，不做横向滚动——窄屏上那种滚动条是隐形的，
+   玩家会以为只有前几个地点）；.loc-bg 用 background-image 铺图，图挂了自然透出 --accent-soft 底色。 */
+.zone-loc-bar{display:flex;flex-wrap:wrap;gap:6px;padding:2px 0 8px;margin-bottom:6px}
+.loc-tag{flex:0 0 auto;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:5px 10px;font-size:11.5px;color:var(--text);cursor:pointer;white-space:nowrap}
+.loc-tag.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+.loc-tag .lc{font-size:10px;opacity:.6;margin-left:3px}
+.loc-bg{width:100%;height:140px;border-radius:10px;background:var(--accent-soft);background-size:cover;background-position:center;margin-bottom:8px;border:1px solid var(--line)}
+.loc-empty{font-size:11px;color:var(--dim);padding:6px 2px}
+.staff-sec{font-size:12px;color:var(--accent);letter-spacing:3px;border-left:3px solid var(--accent);padding-left:8px;margin:14px 0 10px}
 .done{color:var(--ok)}
 .log{font-size:11.5px;color:var(--dim);line-height:1.9}
 .log div{border-bottom:1px dashed var(--line);padding:3px 0}
@@ -205,7 +230,9 @@ const STORY = {
       "2026-11-07 批 5 · 多槽存档（嘟嘟指令 3.1–3.6）：新增 STORY.saveSlots（autoSlot / manualSlots / totalSlots / metaKey）与 STORY.multiSlotSave.enabled，引擎在 CFG 里读（CFG 仍是引擎配置，数据层为单一来源，字段缺失有默认兜底）；新增 readSlotMeta / writeSlotMeta / removeSlotMeta / deleteSlot，saveGame() 写完 S 同步写 meta（meta 只存显示用轻量字段，不存 S 全量）；存档页由单槽改为 slots 数组驱动的 4 卡片（自动 + 手动 1/2/3），有档显示周目 · 区间 · 时间 · 最高好感或已通关结局 + 继续/读取 / 覆盖 / 删除，空槽显示「保存到这里」；事件委托新增 save-over / del-slot 两个二次确认分支，save / load 原逻辑保留；CFG.multiSlotSave.enabled=false 回退旧单槽页 saveLegacy()（旧页代码保留、键名不变）。PREFIX 仍 fog5_，afterChange 仍 saveGame('auto')，normalizeSave / export / import / back-to-cover 的 btn-continue 均未动。地点段暂恒为空：mainline.locations 与 S.location 要等地点分区批次才存在，故 meta.location 存 S.location 或 null，不预写假默认值 dining_bar。",
       "2026-11-08 主线选择文案人话化（嘟嘟指令 1–13）：主线页顶部 desc/gauge 换成口语版（无 R2 / M1 / M2 / 热点）；线索卡状态标签改 raw「记下了 · 还没问」/ pending「问明白了 · 还没写」/ done「记对了」/ wrong「写错了」，并加 q.found 门禁——未点开的卡不再显示「记下了」（旧版 state 恒 raw 导致标题与正文「还没点开」自相矛盾）；按钮改「看看这里有什么」/「去问祝颜」/「去问车上认识的人」/「就是这句：x」；「印证」全部换成问/问过（含 scene tip、热点弹窗、补记弹窗、addLog 两条、重读标题）；通道 A / 通道 B 渲染层清零（祝颜卡回退块 small、A 按钮主标签、两处 addLog 括号）；揭示 / R1 / R2 / M1 / M2 / state: done / wrong=true / interpretedCount 等开发备注从弹窗文案删除，写对改「这一笔，你记下了。／你写的是：x」、写错改「写错了，改不了。／这一笔不会再算了。」；挑 token 弹窗换口语长版；祝颜弹窗括号只留「（trust N）」、通道 B 弹窗括号整行删；重读 raw 改「还没问过，只有原句。」（采纳嘟嘟建议，与全文「问问/问清楚」口吻统一）。数据层 uiTexts.channelBPickTitle「找谁印证？」→「问谁？」。线索的 source / reveals 数据字段、state / wrong / interpretedCount 内部字段、判定链、分岔台、终局问答、手账页一律不动。",
       "2026-11-08 收束批 · 祝颜确认 + 空③改动：新增 finale.uiTexts.verdictConfirm（lines 三句白话 / closingFull / partialNoteByBlank 三键 / partialNoteDefault / closingPartial），引擎新增 fullSentenceFromBlank(b,ansKey) 把「题干 + 玩家选中的选项 label」拼成完整句、showVerdictConfirm(callback) 在 judgeFinale 放行后先播祝颜确认再进分岔台（只念填对的空，对 2 空时按 incompleteMarks 第一个 true 的下标点名差哪一空、找不到回退 partialNoteDefault；无 isSecondRun 门禁，一周目同样播；verdictConfirm 缺失时直接 callback）。judgeFinale 删掉「答对 x/3 · 读懂 y/6 · 完整档 …（M7：五枚 done）」系统字段行。空③答案词改「慢慢融进雾里」→「慢慢变成这趟车的一部分」，同步 clues[3].tokens[c4_c].word 与 blanks[2] 正确项 label / readAs，主线关键词、终局候选池、手账三处显示自动一致。verdictFull / verdictPartial / verdictTwo 三段判定文本、空①②、candidateText 逻辑、分岔台、BE 口径、三空判定链一律未动。",
-      "2026-11-08 小字修正批（嘟嘟指出上一批改错）：① 一周目陪伴按钮 small 改回真话——actComp() 走 costAction()，实际耗 1 点，上一批「不耗点 · 每区间 1 次」是错标（当时的理由是「比 +4 好感有用」，前提搞反）；新串「花 1 点 · 每区间 1 次」。② 谢寻二周目陪伴 small「每区间 1 次」→「0 点 · 每区间 1 次」，明确告知不耗点。③ 深度事件可点档 deepHint()「深度事件」→「花 1 点 · 深度事件」（深度事件实际耗 1 点，此前没写）；未达门槛 / 未初见 / 已完成三档一字未动。④ verdictFull 正文「不肯选的人，会慢慢融进雾里。」→「…会慢慢变成这趟车的一部分。」，与空③答案词统一；finale.distractorLogic[2].answer 同步改（设计备注、不渲染）。只改上屏小字与一句判定文本，costAction / actComp / actDeep / srActComp / 行动点结算 / 深度解锁门槛一律未动。"
+      "2026-11-08 小字修正批（嘟嘟指出上一批改错）：① 一周目陪伴按钮 small 改回真话——actComp() 走 costAction()，实际耗 1 点，上一批「不耗点 · 每区间 1 次」是错标（当时的理由是「比 +4 好感有用」，前提搞反）；新串「花 1 点 · 每区间 1 次」。② 谢寻二周目陪伴 small「每区间 1 次」→「0 点 · 每区间 1 次」，明确告知不耗点。③ 深度事件可点档 deepHint()「深度事件」→「花 1 点 · 深度事件」（深度事件实际耗 1 点，此前没写）；未达门槛 / 未初见 / 已完成三档一字未动。④ verdictFull 正文「不肯选的人，会慢慢融进雾里。」→「…会慢慢变成这趟车的一部分。」，与空③答案词统一；finale.distractorLogic[2].answer 同步改（设计备注、不渲染）。只改上屏小字与一句判定文本，costAction / actComp / actDeep / srActComp / 行动点结算 / 深度解锁门槛一律未动。",
+      "2026-11-08 二周目 FAST 最小减负 v1.2 落地（嘟嘟拍板三条 + 五处残留）：① 新增 CFG.fastMode{enabled:true} 与 fastOn() 单入口（isSecondRun() && enabled），一周目恒 false、关开关完全回退。② actHotspot：c1 的 tutorialEntry 之后加 fast 分支——found 检查 → costAction（失败即 return，手账保持空白）→ found/state=pending/via=secondRun → 补一次幂等 acquireOldRecord(\"zhuyan_watching_fog\")（actInterpret 通道 A 仍是原调用点，fast 绕过它后必须补，否则碎片只 2 条、egg_fog_child 永久锁死）→ 弹窗整段复刻 actInterpret 的 pushEvent（quizHead(c)+fullSentence(c)+选词），只把 line 换成新引导语。③ channelBButton fast 下整条不渲染。④ renderConductorCard fast 下按钮改「找她聊聊」、加小字「她好像只是想说说话。」、「待解读：N 条」整行不渲染（fast 下 chcRawZones 恒空，留着就是「没有需要解读的」，与按钮自相矛盾）。⑤ 车厢页 .tip fast 版把「点热点不耗点」换成带成本的说法，成本按当前区间 cost 判定，zone6（c6 cost=0）不写「花 1 点」。⑥ openConductorPanelInner fast 分支只播 card.noPendingReply，不列线索、不加 trust、不碰 AP；显式分支用于挡旧档/开关中途切换残留的 raw（否则那些 raw 走 conductor_f 会 addTrust(1)，与 actWriteKeyword 的 fast +1 叠成双份）。⑦ actWriteKeyword 成功置 done 后 if(fastOn()) addTrust(1)：每完成 1 条 +1、c2 起算（c1 在函数开头 return tutorialEntry 走不到）、clamp 交给 addTrust，不加 S.trust<5 守卫。取消 v1 的「每 2 条 +1」——它会让 knowerHits 的 trust>=2 从 3 条 done 变 5 条、alongWithFogSoftGate 的 3 从 4 条变全清 6 条；改成每 1 条后与今天通道 A 节奏逐字等价，两道门阈值真的不用动。trustPolicy.max 保持 5。⑧ 2.8 手账内部 ID 泄漏：诊断前提纠正——全库搜「C＋数字＋破折号＋字母」形态（如 C3—a）与 c3-a 两种写法，均 0 命中，真因是 actWriteKeyword 的 addLog 直接拼了 token 内部 key（形如 c3_a），而手账「手账记事」把 S.log 原样渲染，玩家看到「写下第 3 笔的关键词：c3_a」。改为 keywordLabel(c,key)。未建 clueDisplayName()、未加全局正则兜底——那套正则会误伤正文里正常的「c2–c5」「C2–C6」区间写法。引擎配置/渲染/日志各一处，判定链、三空、分岔台、BE、谢寻线、彩蛋、旧记录双栏、actInterpret 内原调用、一周目行为一律未动。回归 21 探针 423 项全绿，迁移 bug1_fix_probe #3（通道 B 候选本体不变，按钮渲染改为 fast 不渲染 / 关开关不是 ghost）。",
+      "2026-11-08 文案整理落地 v1 数据层（A–G·嘟嘟原文逐字）：A finale.uiTexts.actionPool 新增 tipPool「整趟共用，用完不补」/ tipFast / tipKnowerSecondRun；B clues[c2].interpret.text 末句改「你自己写下的字，会一直留下来。」、tokens[c2_a].text 改「我自己写下的那个问题（它一直在）」、clues[c4].interpret.text 补「我的座位号……」、tokens[c4_c].text 改「留在这儿了——慢慢变成这趟车的一部分」、tokens[c5_c].text 改「老冯没说完就被叫走了」（clueQuizzes 的 c5_c 候选 label 同步，题干与 readAs 不动）；C clues[0].tutorial.ui 新增 step1Hint / step2Title / step2Hint / step3Title / step3Hint，retryText 改「再想想。祝颜说的不是这一句。」；D finale.uiTexts.blankAsk 改口语版，opening.blankIntro 不动；E egg_window_woman 的 location 改「车窗外 · 站台上」、intro / talkIntro / talkYes.line（四段式：给票 → 走进雾 → 递票给祝颜 → 信任 +1）/ narrative 逐字更新，talkYes 的 item / trustDelta / fallbackIfCapped / talkNo / listenFragments 不动；F egg_fog_child 的 intro 补「我在等一个人。我忘了他长什么样了。」、删 nodRewards、新增 choices 四项（四条角色各一件信物，字段 target/item/aff/line，谢寻那条带 tag/flagKey）+ 新增 choicesIntro（画）+ nodNo（摇头分支），note / narrative / condition / options 不动；G egg_chess_players.transition、egg_old_conductor.afterBothQuestions.transition 两条过渡句落库，拾遗婆婆 intro 保持原样（指令标非必须）。判定链、三空 candidatePool、BE 口径、incompleteMarks、行动点模型、trust 来源与 clamp、通道 B 选人、分岔台、旧记录双栏 / 残页 / 谢寻线一律未动。"
     ]
   },
   "saveSlots": {
@@ -221,6 +248,22 @@ const STORY = {
   },
   "multiSlotSave": {
     "enabled": true
+  },
+  "itemLabels": {
+    "item_page_fragment": "旧手账残页",
+    "item_old_ticket": "旧车票",
+    "item_orange_candy": "半块橘子糖",
+    "item_chess_piece": "棋子",
+    "item_faded_ticket": "褪色的车票",
+    "item_letter_corner": "没寄出的信的一角",
+    "item_broken_string": "断掉的琴弦一截",
+    "item_old_badge": "旧工牌",
+    "item_survey_glove": "磨破的测绘手套",
+    "item_inspection_page": "巡检本残页",
+    "旧手账残页": "旧手账残页",
+    "备用琴弦套装": "备用琴弦套装",
+    "迷你修琴扳手": "迷你修琴扳手",
+    "信物·褪色的车票": "褪色的车票"
   },
   "mainline": {
     "status": "规则、祝颜设定与人员编制已定稿（嘟嘟拍板）· 具体台词、第 6 区间抉择文案待写",
@@ -407,6 +450,76 @@ const STORY = {
       }
     ],
     "recommendation": "B 做骨架、A 做手感：主线是「发现这趟车的规则」，但每区间的具体动作是捡到 / 记下 6 件小东西。用寻物的轻动作，查规则的谜，既有悬疑又不抢恋爱戏。",
+    "locations": {
+      "dining_bar": {
+        "name": "餐车·吧台",
+        "group": "dining",
+        "icon": "🍽",
+        "bg": "地点/dining_bar.png"
+      },
+      "dining_corner": {
+        "name": "餐车·角落",
+        "group": "dining",
+        "icon": "🍽",
+        "bg": "地点/dining_corner.png"
+      },
+      "dining_table": {
+        "name": "餐车·另一桌",
+        "group": "dining",
+        "icon": "🍽",
+        "bg": "地点/dining_table.png"
+      },
+      "hard_seat": {
+        "name": "硬座车厢",
+        "group": "seat",
+        "icon": "💺",
+        "bg": "地点/hard_seat.png"
+      },
+      "hard_sleeper": {
+        "name": "硬卧车厢",
+        "group": "sleeper",
+        "icon": "🛏",
+        "bg": "地点/hard_sleeper.png"
+      },
+      "soft_sleeper": {
+        "name": "软卧车厢",
+        "group": "sleeper",
+        "icon": "🛌",
+        "bg": "地点/soft_sleeper.png"
+      },
+      "connector_front": {
+        "name": "连接处·前",
+        "group": "connector",
+        "icon": "🚪",
+        "bg": "地点/connector_front.png"
+      },
+      "connector_rear": {
+        "name": "连接处·后",
+        "group": "connector",
+        "icon": "🚪",
+        "bg": "地点/connector_rear.png"
+      },
+      "tail": {
+        "name": "车尾",
+        "group": "tail",
+        "icon": "🌫",
+        "bg": "地点/tail.png",
+        "alwaysShow": true
+      },
+      "empty_carriage": {
+        "name": "空车厢",
+        "group": "tail",
+        "icon": "⬜",
+        "bg": "地点/empty_carriage.png",
+        "alwaysShow": true
+      },
+      "junction": {
+        "name": "分岔口",
+        "group": "end",
+        "icon": "🔀",
+        "bg": "地点/junction.png"
+      }
+    },
     "answers": [
       {
         "q": "为什么二周目谢寻认得你",
@@ -415,11 +528,11 @@ const STORY = {
       },
       {
         "q": "为什么集齐 4 枚线索才看得见【雾的真相】",
-        "a": "雾抹的是记忆，别人告诉你的答案照样被抹掉，只有自己记下来的算数。所以必须玩家亲自一枚枚记；女列车员不能直接说——不是她藏着，是说了没用。"
+        "a": "雾抹的是记忆，别人告诉你的答案照样被抹掉，只有自己记下来的算数。所以必须玩家亲自一枚枚记；乘务长不能直接说——不是她藏着，是说了没用。"
       },
       {
         "q": "为什么只做主线、谁都不陪的人反而拿到钥匙",
-        "a": "因为女列车员当年走的就是这条路：她也是一个人在车上把整件事看完才留下的。独行不是惩罚，是「你和她走了同一条路，所以只有你看得见她」。"
+        "a": "因为乘务长当年走的就是这条路：她也是一个人在车上把整件事看完才留下的。独行不是惩罚，是「你和她走了同一条路，所以只有你看得见她」。"
       }
     ],
     "clueScaffold": {
@@ -596,7 +709,7 @@ const STORY = {
           },
           {
             "at": 6,
-            "line": "那个字……你也看见了？……别问我它后面是什么。我也不知道。"
+            "line": "那个词……你也看见了？……别问我它是什么。我也不知道。"
           }
         ],
         "tierRule": "【甲方案后】tiers 现在只是「按线索编号取词」的台词库，at 字段保留作档位标记、不再驱动取词；取词一律走 lineByClue → tiers[n-1].line。M4 原口径（取 at<=S.trust 的最大档）仅作无映射时的兜底。M4 当初要防的「跳着玩却听到 zone1 保底句」，按线索取词后自动成立，且不会答非所问。 【方案乙】第 6 档 at=6 仅供 c6 按线索取词，不代表 S.trust 可涨到 6。",
@@ -909,7 +1022,7 @@ const STORY = {
             "hint": "切到「主线」页看看。",
             "dismissible": false
           },
-          "blankAsk": "手账摊在膝上。你从这一路记下的原话里，挑一句填进去。",
+          "blankAsk": "手账摊在膝上。你从这一路记下的关键点里，选出最贴合答案的一项填写。",
           "verdictFull": "你把三笔连起来，忽然懂了。雾不是天气，是没做完选择的人被暂留的地方。只有自己记下来的东西带得走。不肯选的人，会慢慢变成这趟车的一部分。你合上手账。车门开了。",
           "verdictPartial": "你把三笔连起来，懂了大概。只是有几笔记不清了，雾从纸缝里漫上来，把边角泡花了。你合上手账。车门开了。有些答案，你带得走；有些，留在了雾里。",
           "verdictTwo": "你拼出了半句。剩下半句，雾替你补上了——补的不是你的答案。车门开了。你听见广播在念一个你没记下来的站名。",
@@ -984,7 +1097,7 @@ const STORY = {
           "c5Prompt": "老冯说的那句没说完的话，你听见的是——",
           "c5Hint": "这一笔不填进那三句话。它只记下你听见了什么。",
           "c6Prompt": "你走近第三块牌。雾里，你看见的是——",
-          "c6Hint": "这一个字不参与谜题。它只记下你看见了什么。",
+          "c6Hint": "这一串字母不参与谜题。它只记下你看见了什么。",
           "opening": {
             "opener": "列车停在分岔口。广播第三次念出那个时刻表上没有的站名。你翻开手账，把这一路记下的东西摊在膝上。",
             "ask": "你记下的这些，能连成什么？",
@@ -1097,7 +1210,10 @@ const STORY = {
             "tipNeutral": "花完就去下一节车厢看看",
             "poolIntro": "这一趟，行动点总共 {n} 点，用完不再补——省着点花。",
             "exhaustedZone": "本区间的行动点已经用完了。去下一区间吧。",
-            "exhaustedPool": "行动点用完了。这一趟不会再有新的了。"
+            "exhaustedPool": "行动点用完了。这一趟不会再有新的了。",
+            "tipPool": "整趟共用，用完不补",
+            "tipFast": "这一趟你带着记忆回来，不用再找人问——点开线索，就可以直接看清整句，自己挑关键点写下来。写一条线索花 1 点；陪伴、闲聊、彩蛋不花点。",
+            "tipKnowerSecondRun": "知情人还是车开到哪节才碰得上；回访补听不花点。"
           }
         },
         "candidateCountNote": "每空固定 5 个候选（candidateCount=5），三档画风一致；顺序＝options 数组顺序（确定性、可复现）。正确词只在 done 档进池，raw / missed 档绝不进池。【B2】sanityCheck 的 I2 逐档体检 ≥5 且 done 档含正确词、raw/missed 档不含，与 blankPool() 共用同一套纯函数。",
@@ -1144,7 +1260,7 @@ const STORY = {
           },
           {
             "blank": "C6",
-            "answer": "就露了一笔",
+            "answer": "露出了 Limbo",
             "logic": "2 没看仔细，3 记错牌"
           }
         ],
@@ -1172,7 +1288,7 @@ const STORY = {
               },
               {
                 "key": "c5_c",
-                "label": "老冯被叫走了",
+                "label": "老冯没说完就被叫走了",
                 "right": false,
                 "readAs": "老冯被后厨叫走了。",
                 "note": "这是场景，不是话的内容"
@@ -1182,15 +1298,15 @@ const STORY = {
           {
             "clueId": "c6",
             "useFor": "forkFlag",
-            "uiHint": "这一个字不参与谜题。它只记下你看见了什么。",
+            "uiHint": "这一串字母不参与谜题。它只记下你看见了什么。",
             "prompt": "你走近第三块牌。雾里，你看见的是——",
             "answerToken": "c6_a",
             "options": [
               {
                 "key": "c6_a",
-                "label": "就露了一个字",
+                "label": "露出了一串字母 L-I-M-B-O",
                 "right": true,
-                "readAs": "你走近第三块牌。雾里，你看见的是——就露了一个字。",
+                "readAs": "你走近第三块牌。雾里，你看见的是——单词 Limbo。",
                 "note": ""
               },
               {
@@ -1198,7 +1314,7 @@ const STORY = {
                 "label": "整块都糊着",
                 "right": false,
                 "readAs": "整块都糊着。",
-                "note": "明明露了一个字，没看仔细"
+                "note": "明明露出了英文，没看仔细"
               },
               {
                 "key": "c6_c",
@@ -1532,10 +1648,15 @@ const STORY = {
               "nextLabel": "下一步",
               "skipLabel": "跳过",
               "finishLabel": "完成",
-              "retryText": "再想想。祝颜说的不是这个。",
+              "retryText": "再想想。祝颜说的不是这一句。",
               "journalLabel": "手账这一条标着：「{tag}」。",
               "entryLabel": "进入教学 · 第 1 笔",
-              "entryHint": "不耗行动点 · 点错可以重来"
+              "entryHint": "不耗行动点 · 点错可以重来",
+              "step1Hint": "先听她说一句。听完点“下一步”。",
+              "step2Title": "从下面三句里，选出你觉得最关键的那一句。",
+              "step2Hint": "选错可以重来，不扣点。",
+              "step3Title": "这一笔已经写进手账了。",
+              "step3Hint": "点“完成”合上手账。"
             },
             "note": "【嘟嘟 2026-11-06 C1 三步演示版】zone1 进入即自动播：①祝颜递半句（steps[0].text，与 trustPolicy.tiers[0].line 逐字同源，保证第 1 档必出）→ ②展示 interpret.text 整句 + 只列 steps[1].tokens 的 3 个可点 token → ③收尾补逻辑桥「原来是还没到的站」并显示 journalTag。点错 onWrong=retry / wrongPenalty=false：不写 wrong、不扣行动点、不限次数；M2「写错不可逆」从 zone2 起生效（教学豁免）。跳过 skipBehavior=auto_done：系统代写 done（H3 原口径），keyword=c1_b、via=tutorial、不扣点、不写 wrong，手账显示 record + keyword + journalTag。教学 0 点，zone1 三点全给恋爱（Q4）；trust 仍由 zone1 教学白送 1，来源不变。本枚 via 只有 tutorial，不渲染通道 A/B；三步弹窗是唯一入口。speaker 的 zhu_yan 是显示别名，引擎映射到 keyNpcs 的 conductor_f（祝颜）。"
           },
@@ -1616,14 +1737,14 @@ const STORY = {
               "loverIdNote": "【L1 落点 · 嘟嘟 2026-11-06 指定】wen_xu；已初见则通道 B 优先找本人，否则按 L2 知情人 → L3 最高好感回退，顺序不可调换。",
               "loverIdUsage": "【2026-11-06 改用途】只用于判定玩家选的人对不对，不再用于 L1/L2/L3 自动落点；id 本身逐字不动。选对 → 好感 +2 + 完整印证；选错 → 好感 +0 + 模糊印证，两者都进 pending。"
             },
-            "text": "看不清。……可它一直在。你写下的那个问题，倒比字清楚。别人写的，一转眼就没了；你自己写的，会一直留下来。",
+            "text": "看不清。……可它一直在。你写下的那个问题，倒比字清楚。别人写的，一转眼就没了；你自己写下的字，会一直留下来。",
             "note": "text＝整句（含可圈的原话片段），pending 态先整句展示再点（M2）；hint / channelB 为可选补充字段，引擎只需 via / cost / text。",
             "textNote": "【2026-11-06 六枚线索文案最终版】整句按嘟嘟定稿改「看不清 / 自己写下的问题」，正确词 text 不再原样嵌进整句（与 C1 教学枚同口径）；判定仍按 key=c2_a，与 word / label 措辞无关。",
             "hintNote": "【2026-11-06 通道B改选人印证 / C2–C5 文案定稿】hint 按 loverId 索引（结构上一批已定，本批只换文案值，逐字采用嘟嘟定稿）；选对人读这一句，选错人读 finale.uiTexts.channelBWrong（模糊串），不读这里。"
           },
           "tokens": [
             {
-              "text": "我自己写下的那个问题",
+              "text": "我自己写下的那个问题（它一直在）",
               "key": "c2_a",
               "word": "雾气是谜语，还是更深刻的指引？"
             },
@@ -1717,10 +1838,10 @@ const STORY = {
         {
           "id": "c4",
           "zone": 4,
-          "hook": "女列车员的巡检本上有一栏「未下车乘客」，栏里是你的座位号",
+          "hook": "乘务长的巡检本上有一栏「未下车乘客」，栏里是你的座位号",
           "record": "你记下了你的座位号“52D”",
           "reveals": "R4",
-          "source": "女列车员 · 雾线引路人",
+          "source": "乘务长 · 雾线引路人",
           "hotspot": {
             "text": "【待写·巡检本页脚那行字：她把本子留在那儿，不主动介入】",
             "foundText": "【待写·点开后看见的原话】",
@@ -1749,7 +1870,7 @@ const STORY = {
               "loverIdNote": "【L1 落点 · 嘟嘟 2026-11-06 指定】shen_yan；已初见则通道 B 优先找本人，否则按 L2 知情人 → L3 最高好感回退，顺序不可调换。",
               "loverIdUsage": "【2026-11-06 改用途】只用于判定玩家选的人对不对，不再用于 L1/L2/L3 自动落点；id 本身逐字不动。选对 → 好感 +2 + 完整印证；选错 → 好感 +0 + 模糊印证，两者都进 pending。"
             },
-            "text": "为什么要记这些？写上的字擦不掉……我会永远留在这吗？",
+            "text": "为什么要记这些？我的座位号……写上的字擦不掉……我会永远留在这吗？",
             "note": "text＝整句（含可圈的原话片段），pending 态先整句展示再点（M2）；hint / channelB 为可选补充字段，引擎只需 via / cost / text。",
             "textNote": "【2026-11-06 六枚线索文案最终版】整句改「为什么要记这些？……我会永远留在这吗？」，正确词 text「留在这儿了」不再原样嵌进整句（与 C1/C2 同口径）；判定仍按 key=c4_c。",
             "hintNote": "【2026-11-06 通道B改选人印证 / C2–C5 文案定稿】hint 按 loverId 索引（结构上一批已定，本批只换文案值，逐字采用嘟嘟定稿）；选对人读这一句，选错人读 finale.uiTexts.channelBWrong（模糊串），不读这里。"
@@ -1766,7 +1887,7 @@ const STORY = {
               "word": "填着座位号的那栏"
             },
             {
-              "text": "留在这儿了",
+              "text": "留在这儿了——慢慢变成这趟车的一部分",
               "key": "c4_c",
               "word": "慢慢变成这趟车的一部分"
             },
@@ -1837,7 +1958,7 @@ const STORY = {
               "word": "多停一站的好事"
             },
             {
-              "text": "老冯被叫走了",
+              "text": "老冯没说完就被叫走了",
               "key": "c5_c",
               "word": "老冯被后厨叫走"
             }
@@ -1853,8 +1974,8 @@ const STORY = {
         {
           "id": "c6",
           "zone": 6,
-          "hook": "分岔口的站牌上，南城与北市之外还有第三块站牌，雾气弥漫，站牌上有一个字你似乎能看见",
-          "record": "你凑近去看：“无？”",
+          "hook": "分岔口的站牌上，南城与北市之外还有第三块站牌，雾气弥漫，站牌上似乎有一行英文字母",
+          "record": "你凑近去看，站牌上露出一串字母：L-I-M-B-O",
           "reveals": "R1",
           "source": "到站分岔 · 呼应【同路而行】",
           "hotspot": {
@@ -1879,9 +2000,9 @@ const STORY = {
               "loverId": null,
               "loverIdNote": "【L1 落点 · 待嘟嘟第四批按剧情指定】该枚线索通道 B 优先找的可攻略角色 id。填了且已初见 → 走 L1 本人；留 null → 跳过 L1，落 L2 知情人 / L3 最高好感。恋人全车常驻，L1 的「在场」＝已初见（carriageMap 不设区间限制）。 zone6 的 via 只有 conductor_f，通道 B 不可用，此字段仅保持结构一致。"
             },
-            "text": "第三块牌……就露了一个字。糊住的部分，得你自己走近看。……我不会拦你，也不会欢迎你。",
+            "text": "第三块牌……露出了一串字母 L-I-M-B-O。糊住的部分，得你自己走近看。……我不会拦你，也不会欢迎你。",
             "note": "text＝整句（含可圈的原话片段），pending 态先整句展示再点（M2）；hint / channelB 为可选补充字段，引擎只需 via / cost / text。",
-            "uiHint": "这一个字不参与谜题。它只记下你看见了什么。",
+            "uiHint": "这一串字母不参与谜题。它只记下你看见了什么。",
             "prompt": "你走近第三块牌。雾里，你看见的是——",
             "quizNote": "C5/C6 不填空，只解锁分岔台。候选即本枚 tokens（显示 token.text），正确项＝keyword.key。题干与提示的权威在 finale.uiTexts.c6Prompt / c6Hint，quizHead() 从那里读；此两处为同源镜像。",
             "textNote": "P0-2：正确词 text 已原样嵌进整句（M2「看清整句再圈出原话」）；pending 态由 fullSentence() 展示。",
@@ -1889,9 +2010,9 @@ const STORY = {
           },
           "tokens": [
             {
-              "text": "就露了一个字",
+              "text": "露出了一串字母 L-I-M-B-O",
               "key": "c6_a",
-              "word": "只露了一个字"
+              "word": "露出了 Limbo 这个站名"
             },
             {
               "text": "整块都糊着",
@@ -2160,7 +2281,9 @@ const STORY = {
           "closing": "算了。你要坐就坐吧。",
           "afterReply": "回到固定第 2 句循环，不再有新内容"
         }
-      }
+      },
+      "location": "dining_corner",
+      "avatar": "头像/lin_zhou.png"
     },
     {
       "id": "shen_yan",
@@ -2216,7 +2339,9 @@ const STORY = {
           "closing": "",
           "afterReply": "回到固定第 2 句循环，不再有新内容"
         }
-      }
+      },
+      "location": "hard_sleeper",
+      "avatar": "头像/shen_yan.png"
     },
     {
       "id": "su_ye",
@@ -2272,7 +2397,9 @@ const STORY = {
           "closing": "",
           "afterReply": "回到固定第 2 句循环，不再有新内容"
         }
-      }
+      },
+      "location": "connector_rear",
+      "avatar": "头像/su_ye.png"
     },
     {
       "id": "lu_ye",
@@ -2328,7 +2455,9 @@ const STORY = {
           "closing": "",
           "afterReply": "回到固定第 2 句循环，不再有新内容"
         }
-      }
+      },
+      "location": "connector_front",
+      "avatar": "头像/lu_ye.png"
     },
     {
       "id": "wen_xu",
@@ -2389,12 +2518,14 @@ const STORY = {
           "closing": "",
           "afterReply": "回到固定第 2 句循环，不再有新内容"
         }
-      }
+      },
+      "location": "soft_sleeper",
+      "avatar": "头像/wen_xu.png"
     },
     {
       "id": "xie_xun",
       "name": "谢寻",
-      "tag": "雾站专属列车员 · 清冷克制（二周目隐藏限定）",
+      "tag": "列车员 · 清冷克制（隐藏角色）",
       "difficulty": "meta",
       "car": "全车厢流动巡查",
       "knower": "lao_feng",
@@ -2543,7 +2674,9 @@ const STORY = {
           ],
           "keyLine": "你不是列车员。你是乘客。你当年也在犹豫。"
         }
-      }
+      },
+      "location": "mobile",
+      "avatar": "头像/xie_xun.png"
     }
   ],
   "secondRun": {
@@ -2645,7 +2778,8 @@ const STORY = {
           }
         ],
         "extraDialogue": "我的？……我不记得我丢过什么了。",
-        "narrative": "她守着一桌别人丢下的东西，自己那一件，早就想不起来放在哪了。"
+        "narrative": "她守着一桌别人丢下的东西，自己那一件，早就想不起来放在哪了。",
+        "locationId": "dining_corner"
       },
       "egg_chess_players": {
         "id": "egg_chess_players",
@@ -2681,23 +2815,25 @@ const STORY = {
             "text": "餐车里有两个人下了一整趟车的棋，谁也没赢。"
           }
         ],
-        "narrative": "他们下了一整趟车，谁也没赢。不是棋下不完，是谁都不敢先落最后一子。"
+        "narrative": "他们下了一整趟车，谁也没赢。不是棋下不完，是谁都不敢先落最后一子。",
+        "transition": "他们没说话，把一枚棋子推到你面前。「拿着吧。这盘棋，下不完的。」",
+        "locationId": "dining_table"
       },
       "egg_window_woman": {
         "id": "egg_window_woman",
         "name": "对窗说话的女人",
         "zone": 4,
-        "location": "车厢连接处",
+        "location": "车窗外 · 站台上",
         "interaction": "once_per_run",
         "condition": "isGlimpseActive()",
-        "intro": "（她对着车窗玻璃说话，像在跟倒影聊天。）",
+        "intro": "（列车临时停靠。你从车窗看到站台上站着一个女人，正对着车窗玻璃说话——玻璃里映出的是她自己的脸。）",
         "listenFragments": [
           "……你说我该回去吗？",
           "……可他还在等吗？",
           "……当年要是上了那趟车就好了。"
         ],
         "listenNote": "她说「当年要是上了那趟车就好了」。",
-        "talkIntro": "你也是一个人下的车？",
+        "talkIntro": "你在车上？……这趟车，我每年都来看。",
         "talkOptions": [
           "是",
           "不是"
@@ -2712,13 +2848,14 @@ const STORY = {
             "type": "narrative",
             "text": "祝颜捏着那张票看了很久。「……这票，我好像见过。想不起来了。」她把票收好，没再说话。你感觉她离你近了一点。"
           },
-          "line": "祝颜多看了你一眼。「……你从哪找到的。」顿了一下。「……谢谢。」"
+          "line": "女人从口袋里摸出一张褪色的车票，隔着车窗朝你递过来。车票穿过玻璃，落到你手里，还带着一点凉。\n她没再说话，转身走进雾里。\n你回头把票递给祝颜。祝颜接过票，看了很久。「……你从哪找到的。」她把票收好，顿了一下。「……谢谢。」\n（信任 +1）"
         },
         "talkNo": {
           "type": "narrative",
           "text": "「那挺好。有人并肩，就别回头看了。」"
         },
-        "narrative": "她对着车窗说话，像在跟另一个自己商量。那趟车她没敢上，就再也没等到下一趟。"
+        "narrative": "她对着车窗说话，像在跟另一个自己商量。那趟车她没敢上，就再也没等到下一趟。她没上车，祝颜没下车。两个人选了相反的路，都留在了雾里。",
+        "locationId": "connector_rear"
       },
       "egg_fog_child": {
         "id": "egg_fog_child",
@@ -2727,45 +2864,56 @@ const STORY = {
         "location": "车尾附近·半透明",
         "interaction": "once_per_run",
         "condition": "旧记录碎片 ≥3 条",
-        "intro": "你看得见我？",
+        "intro": "你看得见我？……我在等一个人。我忘了他长什么样了。",
         "options": [
           "点头",
           "摇头"
         ],
-        "nodRewards": [
+        "note": "小孩说他在等一个人，但忘了是谁。",
+        "narrative": "他蹲在雾里画画，画了又散。他不记得自己在等谁，只记得要等。",
+        "choicesIntro": "小孩从怀里掏出一张画，画上是一个人的背影。「这个，帮我给他。……你认得吗？」",
+        "choices": [
           {
-            "id": "item_letter_corner",
-            "label": "没寄出的信的一角",
             "target": "lin_zhou",
+            "item": {
+              "id": "item_letter_corner",
+              "label": "没寄出的信的一角"
+            },
             "aff": 3,
             "line": "这个……你怎么会有这个？……算了，别问。"
           },
           {
-            "id": "item_broken_string",
-            "label": "断掉的琴弦一截",
             "target": "wen_xu",
+            "item": {
+              "id": "item_broken_string",
+              "label": "断掉的琴弦一截"
+            },
             "aff": 3,
             "line": "我的弦……？你怎么……不，别告诉我。"
           },
           {
-            "id": "item_old_badge",
-            "label": "旧工牌（只看得清「谢」字）",
             "target": "xie_xun",
+            "item": {
+              "id": "item_old_badge",
+              "label": "旧工牌（只看得清「谢」字）"
+            },
             "aff": 3,
             "line": "这工牌……不是我的。……上面怎么有个「谢」字？",
             "tag": "xiexun_clue",
             "flagKey": "eggChildBadge"
           },
           {
-            "id": "item_survey_glove",
-            "label": "磨破的测绘手套",
             "target": "shen_yan",
+            "item": {
+              "id": "item_survey_glove",
+              "label": "磨破的测绘手套"
+            },
             "aff": 3,
             "line": "这手套……我扔过一副一样的。你从哪捡的。"
           }
         ],
-        "note": "小孩说他在等一个人，但忘了是谁。",
-        "narrative": "他蹲在雾里画画，画了又散。他不记得自己在等谁，只记得要等。"
+        "nodNo": "小孩低下头，继续在雾里画画。「……那你要是看见他，跟他说一声，我还在等。」",
+        "locationId": "tail"
       },
       "egg_old_conductor": {
         "id": "egg_old_conductor",
@@ -2789,12 +2937,15 @@ const STORY = {
           "text": "谢寻，新来的，还问过我怎么下车。",
           "tag": "xiexun_clue",
           "flagKey": "eggOldConductorPage",
-          "journalNote": "他说「谢寻」的时候，眼睛亮了一下。"
+          "journalNote": "他说「谢寻」的时候，眼睛亮了一下。",
+          "transition": "他从巡检本上撕下一页，递给你。「上面有个名字。……我不记得是谁了。」"
         },
-        "narrative": "他比谢寻更早被雾留下。现在连「等」都忘了，只剩「还在」。"
+        "narrative": "他比谢寻更早被雾留下。现在连「等」都忘了，只剩「还在」。",
+        "locationId": "empty_carriage"
       }
     }
   },
+  "keyNpcsNote": "知情人按钮跟随 lover 卡：按钮出现只看 lover 是否在当前地点 + knowerHere(id)，不看知情人自己的 location。location 字段当前只用于人数统计口径和未来「知情人独立出现」的预留；要切成严格 AND，必须先确保知情人 location 与对应 lover 一致，再开 knowerStrictLocation: true。",
   "keyNpcs": [
     {
       "id": "conductor_f",
@@ -2810,7 +2961,9 @@ const STORY = {
         "name": "与雾同行",
         "text": "你看穿了雾气的真相，也看懂了她藏在平静下的孤独。你没有选择下车回归自己的人生，而是主动留在这趟永不停歇的雾中列车上，做她的同行者。从此你们一起守着这段轨道，见证每一场因抉择而起的相遇与离别。大雾永远不会散，但你身边，终于有了并肩的人。"
       },
-      "note": "仍是重要 NPC，用 trust 计进度，不进可攻略池、不占 6 槽。她不解释规则：转述的答案会被雾抹掉，只有玩家自己记下来的算数；且「不干预任何人的抉择」＝只递半句提醒，不下指令。重要 NPC 定编 7 位，她一人扛起雾线引路，不再补第 8 位引路人；她也是谢寻唯一的带教师傅。"
+      "note": "仍是重要 NPC，用 trust 计进度，不进可攻略池、不占 6 槽。她不解释规则：转述的答案会被雾抹掉，只有玩家自己记下来的算数；且「不干预任何人的抉择」＝只递半句提醒，不下指令。重要 NPC 定编 7 位，她一人扛起雾线引路，不再补第 8 位引路人；她也是谢寻唯一的带教师傅。",
+      "location": "car_tail_office",
+      "avatar": "头像/conductor_f.png"
     },
     {
       "id": "zhi_xia",
@@ -2819,7 +2972,8 @@ const STORY = {
       "tag": "同校中文系本科女生，放假返乡的乘客",
       "for": "lin_zhou",
       "role": "知情人",
-      "text": "曾是林昼带过的直系学妹，知晓他因家庭变故骤然休学、无家可归的全部内情，始终不敢主动上前问候。"
+      "text": "曾是林昼带过的直系学妹，知晓他因家庭变故骤然休学、无家可归的全部内情，始终不敢主动上前问候。",
+      "location": "dining_corner"
     },
     {
       "id": "meng_ke",
@@ -2828,7 +2982,8 @@ const STORY = {
       "tag": "建筑设计院绘图员，出差换乘的乘客",
       "for": "shen_yan",
       "role": "知情人",
-      "text": "曾与沈砚搭档完成过野外测绘项目，清楚他嘴硬心软的性子，也知道他因原生家庭始终不敢对人交付真心。"
+      "text": "曾与沈砚搭档完成过野外测绘项目，清楚他嘴硬心软的性子，也知道他因原生家庭始终不敢对人交付真心。",
+      "location": "hard_sleeper"
     },
     {
       "id": "chen_gui_lan",
@@ -2837,7 +2992,8 @@ const STORY = {
       "tag": "去邻市探亲的中年阿姨，普通乘客",
       "for": "su_ye",
       "role": "知情人",
-      "text": "曾是苏叶救治过的重症患者家属，亲眼见过他连轴加班救人后累倒的模样，始终记着这位总委屈自己的年轻医生。"
+      "text": "曾是苏叶救治过的重症患者家属，亲眼见过他连轴加班救人后累倒的模样，始终记着这位总委屈自己的年轻医生。",
+      "location": "hard_seat"
     },
     {
       "id": "zhou_zhong",
@@ -2846,7 +3002,8 @@ const STORY = {
       "tag": "县城照相馆老板，外出采买器材的乘客",
       "for": "lu_ye",
       "role": "知情人",
-      "text": "是陆野相交十年的旧友，见过他年少时掏心掏肺却被辜负的过往，知道他四海为家不是潇洒，是不敢停留。"
+      "text": "是陆野相交十年的旧友，见过他年少时掏心掏肺却被辜负的过往，知道他四海为家不是潇洒，是不敢停留。",
+      "location": "connector_front"
     },
     {
       "id": "yu_xing",
@@ -2855,7 +3012,8 @@ const STORY = {
       "tag": "乐团行政助理，回老家休假的乘客",
       "for": "wen_xu",
       "role": "知情人",
-      "text": "曾跟着温叙跑过两年全国巡演，清楚他每次登台前都要偷偷服药、硬撑病痛的秘密，一直心疼却从未声张。"
+      "text": "曾跟着温叙跑过两年全国巡演，清楚他每次登台前都要偷偷服药、硬撑病痛的秘密，一直心疼却从未声张。",
+      "location": "soft_sleeper"
     },
     {
       "id": "lao_feng",
@@ -2873,7 +3031,8 @@ const STORY = {
         "deep": "我有时候觉得，他好像忘了自己为什么在这车上。……你说怪不怪，他自己不觉得怪。",
         "tag": "laofeng_dialog",
         "once": true
-      }
+      },
+      "location": "dining_bar"
     }
   ],
   "carriageMap": [
@@ -2944,7 +3103,8 @@ const STORY = {
         "itemTrigger": "嗨，巧了。我这包里常年装着几套备用琴弦和小扳手，修了一辈子琴，走到哪儿都带着。你拿一套去吧，学琴的孩子都不容易，别因为这点小事扫了兴。"
       },
       "linkageTo": "wen_xu",
-      "linkageNote": "把琴弦拿给温叙时，他会愣一下问起对方样子，说「我好像听过这位老师傅的名字，圈里很多人都找他修过琴」，顺势引出他对「老一辈眼里的安稳」与「自己选的路」的感慨，自然推进交心剧情。"
+      "linkageNote": "把琴弦拿给温叙时，他会愣一下问起对方样子，说「我好像听过这位老师傅的名字，圈里很多人都找他修过琴」，顺势引出他对「老一辈眼里的安稳」与「自己选的路」的感慨，自然推进交心剧情。",
+      "location": "hard_sleeper"
     }
   ],
   "ambientNpcs": [
@@ -2953,28 +3113,33 @@ const STORY = {
       "name": "加班出差的互联网运营",
       "car": "硬座角落，笔记本亮着工作界面",
       "line": "可不是嘛，本来赶回去开复盘会，这下正好躲过一劫。说起来我都纠结仨月了，裸辞还是接着熬，合着这雾是帮我再拖一天。",
-      "secondRunText": "……奇怪，我怎么觉得这话我说过。裸辞还是接着熬，我好像纠结很久了。算了，不想了。"
+      "secondRunText": "……奇怪，我怎么觉得这话我说过。裸辞还是接着熬，我好像纠结很久了。算了，不想了。",
+      "location": "dining_table",
+      "locationSecondRun": "hard_seat"
     },
     {
       "id": "ambient_exam",
       "name": "二战备考的女生",
       "car": "硬卧过道边座，摊着英语真题",
       "line": "嗯……其实晚点也挺好。我在想要是今年还考不上，是接着考还是回家考编，多给我点时间想想也好。",
-      "secondRunText": "今年还考不上怎么办……我是不是去年也这么想过？"
+      "secondRunText": "今年还考不上怎么办……我是不是去年也这么想过？",
+      "location": "hard_seat"
     },
     {
       "id": "ambient_mom",
       "name": "带三岁娃的年轻妈妈",
       "car": "餐车靠窗座，给孩子喂小面包",
       "line": "雾大慢点也安全。我这正愁呢，过完年是回去上班还是接着在家带娃，怎么选都觉得对不起人。",
-      "secondRunHidden": true
+      "secondRunHidden": true,
+      "location": "dining_table"
     },
     {
       "id": "ambient_teacher",
       "name": "拎保温杯的退休老师傅",
       "car": "车厢连接处，靠窗边看雾",
       "line": "这雾啊，就是让你别急。我本来赶着去儿子家带孙子，半路又反悔了，想自己先玩俩月再说。人老了，也该为自己选一回。",
-      "secondRunHidden": true
+      "secondRunHidden": true,
+      "location": "connector_front"
     }
   ],
   "difficultyAssignment": {
@@ -3153,6 +3318,11 @@ const CFG = {
      c6 cost=0 补注：zone6 的解读与问答在总池下仍是 0 点，不额外扣点；通道 A 即 c2–c5 共 4 次＝4 点。
      谢寻线门槛 {deepUnlock:12, he:16}（批 1 已落：deepUnlock＝旧照片事件好感线，he＝分岔台 HE 选项好感线）。 */
   actionsSecondRun:10,
+  /* 【2026-11-08 二周目 FAST 最小减负 v1.2】单一开关，只省点击、不动判定地基。
+     enabled:true → 二周目点热点直接进 pending（省掉「去问祝颜」这一步）、通道 B 不渲染、
+     祝颜卡只播一句剧情；enabled:false → 全部回退，二周目与改动前逐字一致。
+     所有分支统一走 fastOn()，不散写 isSecondRun() && fastMode && enabled。 */
+  fastMode: { enabled: true },
   companionBonus:4,               // 陪伴 +4／区间（设计原样）
   deepBonus:16,
   channelBAff:2,                  // 【第二批 · 嘟嘟已确认】2 点与知情人半句同级；只改这一行
@@ -3209,8 +3379,43 @@ const CFG = {
     { autoSlot:'auto', manualSlots:['1','2','3'], totalSlots:4, metaKey:'fog5_slotmeta' },
     STORY.saveSlots || {}
   ),
-  multiSlotSave: Object.assign({ enabled:true }, STORY.multiSlotSave || {})
+  multiSlotSave: Object.assign({ enabled:true }, STORY.multiSlotSave || {}),
+  /* ──【2026-11-08 地点分区系统 v2】────────────────────────────────
+     只有 UI 状态 S.location，不参与任何判定（行动点 / zone / 判定链 / trust 一律不读它）。
+     enabled=false → scene() 走 sceneLegacy()，输出与改动前逐字相同（不是只回退 NPC 列表）。
+     showBackground / showIcons / showNpcCount 三个显示开关互相独立，可单独关。
+     knowerStrictLocation：知情人按钮「只在自己地点出现」的严格 AND。
+       默认 false＝知情人跟着自己的角色卡走（苏叶在连接处·后、陈桂兰在硬座，
+       严格 AND 会让陈桂兰永久点不到 → 默认不严格，见 scene 区块注释）。
+       置 true 即字面 AND（须先把知情人与其角色卡挪到同一地点）。 */
+  locationSystem: {
+    enabled:true, showBackground:true, showIcons:true, showNpcCount:true,
+    knowerStrictLocation:false
+  }
 };
+
+/* ---------- 地点分区：配置出口 ---------- */
+const LOCS = (STORY.mainline||{}).locations || {};
+const LOC_GROUPS = ['dining','seat','sleeper','connector','tail','end'];   // 标签栏固定排序
+function locOn(){ return !!(CFG.locationSystem && CFG.locationSystem.enabled); }
+function locOf(id){ return LOCS[id] || null; }
+function locName(id){ const L=locOf(id); return L ? (L.name||id) : ''; }
+/* 一串地点 id：按 group 固定顺序排；没写 group 的按数据顺序垫在最前。 */
+function locOrder(){
+  const ids=Object.keys(LOCS);
+  const rank=id=>(LOC_GROUPS.indexOf((LOCS[id]||{}).group)+1)||0;
+  return ids.map((id,i)=>({id,i})).sort((a,b)=>{
+    const d=rank(a.id)-rank(b.id);
+    return d!==0 ? d : a.i-b.i;
+  }).map(x=>x.id);
+}
+
+/* 【批 M】槽位显示名的单一出口：存档页卡片、手账日志共用一套叫法。
+   日志里不许再出现 auto / 1 这种内部 id（英文 auto 上屏＝ID 泄漏）。
+   SLOT_LABEL 只放特殊槽，手动槽走数字兜底，加槽不必改这里。 */
+const SLOT_LABEL = {};
+SLOT_LABEL[CFG.saves.autoSlot] = '自动存档';
+function slotLabel(id){ return SLOT_LABEL[id] || ('存档 '+id); }
 
 /* ─────────────────────────────────────────────────────────────
    【分阶陪伴文案 · 嘟嘟在这里写】
@@ -3379,6 +3584,9 @@ function newGame(name, runIndex){
   const r = (runIndex === 2) ? 2 : 1;
   return {
     name:name||'旅人', tab:'scene', zone:1, actionsLeft:CFG.actionsPerZone[0],
+    /* 【地点分区 v2】当前位置：纯 UI 状态，不参与任何判定；旧档缺字段由 normalizeSave 补默认落点。
+       【2026-11-08】默认落点从「餐车·吧台」（常年 0 人）改成「餐车·角落」——开局第一屏就有人可交互。 */
+    location:'dining_corner',
     /* 【2026-11-07 批 B′】本局第几趟：1=一周目 / 2=二周目。一局只含这两趟，
        第 3 趟起是新一局的一周目。周目判定只读它，不再读全局累计的 M.playCount。 */
     runIndex:r,
@@ -3437,6 +3645,9 @@ let M = loadMeta();
    打完一周目后读回一周目中途旧档会被误判成二周目；第 3 趟起是新一局的一周目，
    二周目内容一律关闭。S 尚未建立时返回 false。 */
 function isSecondRun(){ return !!(S && S.runIndex === 2); }
+/* 【FAST】二周目减负的唯一入口：所有 fast 分支都调这里，不散写组合条件。
+   一周目恒 false（isSecondRun 门禁），开关关闭 / 字段缺失也恒 false → 完全回退。 */
+function fastOn(){ return isSecondRun() && !!(CFG.fastMode && CFG.fastMode.enabled); }
 /* 【2026-11-07 批 B′】M.glimpse 是「曾经看过真相」的永久记录，但只有第 2 趟生效：
    残页 / 谢寻线 / 与雾同行 / 彩蛋三 / 祝颜卡片小字都读它。第 3 趟起返回 false，
    二周目内容全部关闭。setEnding() 里 if(glimpse) M.glimpse=true 是写入，不走这里。 */
@@ -3686,10 +3897,15 @@ function runTutorial(c,step,notice){
   if(!c||!tutData(c).enabled) return;
   TUT_STEP=step;
   const u=tutUi(c), s=tutStep(c,step);
-  const head=`<span class="nm">${esc(pendingText(u.title,'教 学 · 第 1 笔'))}</span><br>`;
+  /* 【文案整理 v1 · 3】三步各有自己的标题与提示行，全部读 tutorial.ui，
+     缺字段 / 空串 → 回退原渲染（标题回退 u.title，提示行整行不渲染）。 */
+  const headOf=k=>`<span class="nm">${esc(pendingText(u[k],pendingText(u.title,'教 学 · 第 1 笔')))}</span><br>`;
+  const descOf=k=>{ const d=pendingText(u[k],''); return d?`<div class="desc">${esc(d)}</div>`:''; };
+  const head=headOf('title');
   const skip={t:esc(pendingText(u.skipLabel,'跳过')),ghost:true,fn:()=>tutorialSkip(c)};
   if(s.type==='line'){
-    pushEvent(head+`<span class="nm">${esc(tutSpeaker(s))}</span><br>`+tutRich(s.text),
+    pushEvent(head+descOf('step1Hint')
+      +`<span class="nm">${esc(tutSpeaker(s))}</span><br>`+tutRich(s.text),
       [{t:esc(pendingText(u.nextLabel,'下一步')),fn:()=>runTutorial(c,1)},skip]);
     return;
   }
@@ -3702,12 +3918,12 @@ function runTutorial(c,step,notice){
     opts.push(skip);
     const sentence=s.showInterpretText===false?''
       :`<span class="nm">${esc(pendingText(u.sentenceLabel,'整句'))}</span><br>${tutRich(fullSentence(c))}<br>`;
-    pushEvent(head+note+sentence,opts);
+    pushEvent(headOf('step2Title')+note+sentence+descOf('step2Hint'),opts);
     return;
   }
   /* done：收尾正文 + journalTag（补成 2.4 定稿的第三行「手账这一条标着：…」） */
   const jl=String(pendingText(u.journalLabel,'手账这一条标着：「{tag}」。')).replace('{tag}',tutTag(c));
-  pushEvent(head+tutRich(s.text)+`<br><span class="desc">${esc(jl)}</span>`,
+  pushEvent(headOf('step3Title')+tutRich(s.text)+`<br><span class="desc">${esc(jl)}</span>`+descOf('step3Hint'),
     [{t:esc(pendingText(u.finishLabel,'完成')),fn:()=>closeTutorial()}]);
 }
 function tutorialPick(c,k){
@@ -3770,6 +3986,13 @@ function chcRawZones(){
     .filter(z=>z!==1 && S.clue[z] && S.clue[z].found && S.clue[z].state==='raw')
     .sort((a,b)=>a-b);
 }
+/* 【角色头像 v1】纯显示，不参与任何判定。path 为空 → 只有底色 + 首字；
+   有 path → 塞 <img>，加载失败时 onerror 把它摘掉，div 变空后由 CSS 补首字。 */
+function avatarHtml(name, path){
+  const fb=(name||'').slice(0,1);
+  const img=path?`<img src="${esc(path)}" alt="" onerror="this.remove()">`:'';
+  return `<div class="avatar" data-fb="${esc(fb)}">${img}</div>`;
+}
 function renderConductorCard(){
   const opt=CFG.conductorHomeCard;
   if(!opt||!opt.enabled) return '';
@@ -3779,14 +4002,22 @@ function renderConductorCard(){
   const trust=S.trust||0;
   const filled=Math.max(0,Math.min(max,trust));  // 只防 String.repeat 负数抛错，不改数值
   const pending=chcRawZones().length;
+  const fast=fastOn();
+  /* 头像路径取自 keyNpcs，不写进 card.display（display 只放文案字段）。 */
+  const av=(KEY_BY['conductor_f']||{}).avatar||'';
   let h=`<div class="chc-card" data-act="conductor-card">`;
+  h+=`<div class="chc-head">${avatarHtml(d.name,av)}<div class="card-body">`;
   h+=`<div class="chc-name">${esc(d.name)}</div>`;
   h+=`<div class="chc-loc">${esc(d.location)}</div>`;
   h+=`<div class="chc-trust">${esc(d.trustLabel)}：${'●'.repeat(filled)}${'○'.repeat(max-filled)}</div>`;
-  h+=`<div class="chc-pending">${esc(d.pendingLabel)}：${pending>0?pending+' 条':esc(card.emptyState)}</div>`;
+  /* 【FAST · 2.3】二周目点热点直落 pending，chcRawZones() 只数 raw → 恒空，
+     这一行只会渲染「待解读：没有需要解读的」，与「找她聊聊」自相矛盾，故整行不渲染。 */
+  if(!fast) h+=`<div class="chc-pending">${esc(d.pendingLabel)}：${pending>0?pending+' 条':esc(card.emptyState)}</div>`;
   /* 说明小字：解释信任点是什么，不承诺功能。旧档缺字段时不渲染，避免 esc(undefined)。 */
   if(d.trustHint) h+=`<div class="chc-hint">${esc(d.trustHint)}</div>`;
-  h+=`<button class="chc-btn" type="button">${esc(d.buttonLabel)}</button>`;
+  h+=`</div></div>`;
+  h+=`<button class="chc-btn" type="button">${esc(fast?'找她聊聊':d.buttonLabel)}</button>`;
+  if(fast) h+=`<div class="chc-hint">她好像只是想说说话。</div>`;
   if(card.secondRunHint && isGlimpseActive() && trust>=2)
     h+=`<div class="chc-secondrun">${esc(card.secondRunHint.text)}</div>`;
   return h+`</div>`;
@@ -3801,6 +4032,14 @@ function openConductorPanel(){
   maybePlaySecondRunTier(()=>openConductorPanelInner(card));
 }
 function openConductorPanelInner(card){
+  /* 【FAST · 2.4】二周目：只播一句剧情，不列待解读、不加 trust、不碰 AP、不置线索 flag。
+     显式分支是为了防「旧档 / 开关中途切换」残留的 raw——那些 raw 若走 conductor_f，
+     会 addTrust(1)，与 actWriteKeyword 的 fast +1 叠成双份 trust。
+     高档台词由前面的 maybePlaySecondRunTier 负责（它只写 S.flags.srTier_N、不碰数值），这里不重复播。 */
+  if(fastOn()){
+    pushEvent(`<span class="nm">${esc(card.display.name)}</span><br>${esc(card.noPendingReply)}`);
+    return flushEvents();
+  }
   const zones=chcRawZones();
   if(!zones.length){
     /* 无待解读：不耗点、不加 trust，只播她一句话（pushEvent 默认给「知道了」按钮）。 */
@@ -3840,88 +4079,245 @@ function openingText(){
   const o=(STORY.secondRun||{}).opening||{};
   return pendingText(o.text, OPENING_OLD);
 }
-const RENDERERS = {
-  scene(){
-    /* 【2026-11-07 ②】开场状态卡只在二周目第 1 区间出现；不耗点、不写状态、不进判定链。 */
-    let h = (isSecondRun() && S.zone===1)
-      ? `<div class="card"><div class="ttl">开 场<small>第 ${S.runIndex} 趟</small></div><div class="desc">${esc(openingText())}</div></div>`
-      : '';
-    h += `<div class="sec">第 ${S.zone} 区间 · 车厢</div>
-      <div class="tip">行动点 ${S.actionsLeft}/${actionTotal()}，${esc(apText('tipNeutral'))}。线索要去「主线」页看看有什么才记下（不耗点）；初见搭话、背景NPC 闲聊也不耗点；陪伴／深聊／问清楚／首次找人问话才花点。<br>车开到哪一节，能碰上的知情人不一样；回访补听不额外花点。</div>`;
-    activeLovers().forEach(L=>{
-      const sr=srLover(L);                       // 【二周目扩面第一批】五位常规角色二周目均为 true
-      const xie=sr && L.id==='xie_xun';          // 【批 1】谢寻：二周目唯一 meta 恋人，陪伴加好感、有专属旧照片事件
-      const a=S.aff[L.id]||0, met=!!S.met[L.id], compDone=!!S.comp[L.id+':'+S.zone], deepDone=!!S.deep[L.id];
-      const knowId=L.knower, knower=KEY_BY[knowId];
-      const kHere=knower&&knowerHere(knowId);       // C：这一区间他在不在车上
-      const kGot=S.knowBonus[knowId]||0;           // A：已经从他那儿听到多少
-      const kFull=kGot>=KNOW_MAX;
-      // 深度按钮只认「公开条件」：初见 + 好感达标。隐藏前置一律不体现在界面上。
-      // 【二周目第一批】deepEvent:false：二周目常规角色一律不列可点的深度事件。
-      // 【批 1】谢寻的旧照片由 maybeTriggerXieXunPhoto 在 zone4+ 自动触发，深度按钮对其整条不渲染。
-      const deepReady=!sr && met && a>=CFG.deepUnlock && !deepDone;
-      const gauge = sr
-        ? (xie ? `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`
-               : `二周目 · 已陪伴 ${S.compTimes[L.id]||0} 次 · 陪伴不加好感`)
-        : `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`;
-      const compSub = sr
-        ? (xie ? (compDone?'本区间已陪伴':'0 点 · 每区间 1 次')
-               : (compDone?'本区间已陪伴':'0 点 · 不加好感 · 每区间 1 次'))
-        : (!met?'先搭句话':compDone?'本区间已陪伴':'花 1 点 · 每区间 1 次');
-      h += `<div class="card">
-        <div class="ttl">${esc(L.name)}<small>${thLabel(L)} · ${tierName(L)}</small></div>
-        <div class="desc">${esc(L.tag)}<br>${esc(L.car)}</div>
-        <div class="gauge">${gauge}</div>
-        ${(met||(sr&&!xie))?'':`<button class="btn primary" data-act="meet" data-id="${L.id}"><b>初见 · 搭句话</b><small>不耗行动点 · 之后才能陪伴与深聊</small></button>`}
-        <button class="btn" data-act="comp" data-id="${L.id}" ${(sr?compDone:(!met||compDone))?'disabled':''}><b>陪伴</b><small>${compSub}</small></button>
-        ${sr?'':`<button class="btn" data-act="deep" data-id="${L.id}" ${deepReady?'':'disabled'}><b>深度事件 · ${esc(L.sideQuest.name)}</b><small>${deepHint(L,deepDone,met,a)}</small></button>`}`;
-      if(knower && kHere){
-        const kLabel = (S.know[knowId]&&!kFull) ? '再找 '+knower.name+' 聊聊' : '找 '+knower.name+' 聊聊';
-        const kSub = kFull ? '知情人 · 已聊透'
-                   : !S.know[knowId] ? '花 1 点 · 他肯说多少，看你到场时攒了什么'
-                   : '回访免费补听（已听到 +'+kGot+' ／ 上限 +'+KNOW_MAX+'）';
-        h += `<button class="btn" data-act="know" data-id="${knowId}" ${kFull?'disabled':''}><b>${esc(kLabel)}</b><small>${kSub}</small></button>`;
-      }
-      h += `</div>`;
-    });
-    const zy=KEY_BY['conductor_f'];
-    /* 【C1】zone1 的教学枚不走通道 A，「祝颜印证」按钮在 zone1 一律不出现 */
-    const zSlot=clueOf(S.zone), zCan=zSlot.found&&zSlot.state==='raw'&&S.zone!==1;
-    /* 【2026-11-06 祝颜主页面入口 · 最终版】旧代码改动点之一：只加这一行调用。
-       开关关闭 / 旧档无 conductorHomeCard 字段时 renderConductorCard() 返回空串，
-       自动回退到下面原来的「摆设」卡片 —— 软撤回＝旧行为完全恢复，且不会出现两个祝颜卡片。
-       中撤回：删这两行、把下面的 else if(zy) 改回 if(zy)。 */
-    const chc=CFG.conductorHomeCard.enabled?renderConductorCard():'';
-    if(chc) h+=chc;
-    else if(zy) h += `<div class="card">
+/* 【地点分区 v2 · 2026-11-08】车厢页拆成「三块共用 + 两条分支」：
+   · sceneCommon()  开场状态卡 / 区间标题 / tip —— 开关不影响这三段，旧代码逐字搬出来
+   · renderLoverCard(L) / bgButton(n) / eggButton(id) / zhuyanCard() / nextZoneBtn() 单块 UI，两条分支共用
+   · sceneLegacy()  改动前的顺序（lovers → 祝颜 → 其 他 人 → 彩蛋 → 下一区间）。
+                    locationSystem.enabled=false 时走它，输出与改动前逐字相同。
+   · sceneByLocation() 地点标签栏 + 背景横幅 + 当前地点 NPC + 工作人员区。
+   铁律：分叉只在「怎么排」；动作 / 数值 / 判定链 / 文案一行未动。 */
+
+function sceneCommon(){
+  /* 【2026-11-07 ②】开场状态卡只在二周目第 1 区间出现；不耗点、不写状态、不进判定链。 */
+  let h = (isSecondRun() && S.zone===1)
+    ? `<div class="card"><div class="ttl">开 场<small>第 ${S.runIndex} 趟</small></div><div class="desc">${esc(openingText())}</div></div>`
+    : '';
+  h += `<div class="sec">第 ${S.zone} 区间 · 车厢</div>`;
+  if(S.srPool){
+    /* 【文案整理 v1 · 1】二周目 tip 三段全在数据层：tipPool（总池口径）/ tipFast（这一趟怎么记）/
+       tipKnowerSecondRun（知情人 + 回访）。任一为空串即跳过该段，不露占位、不留空行。 */
+    const pool=apText('tipPool'), fast=apText('tipFast'), knower=apText('tipKnowerSecondRun');
+    h += `<div class="tip">行动点 ${S.actionsLeft}/${actionTotal()}`
+      + (pool ? '，'+esc(pool) : '') + '。'
+      + (fast ? esc(fast) : '')
+      + (knower ? '<br>'+esc(knower) : '') + `</div>`;
+  } else {
+    h += `<div class="tip">行动点 ${S.actionsLeft}/${actionTotal()}，${esc(apText('tipNeutral'))}。线索要去「主线」页看看有什么才记下（不耗点）；初见搭话、背景NPC 闲聊也不耗点；陪伴／深聊／问清楚／首次找人问话才花点。<br>车开到哪一节，能碰上的知情人不一样；回访补听不额外花点。</div>`;
+  }
+  return h;
+}
+
+/* 祝颜卡（主页面入口 · 最终版）：开关关闭 / 旧档无 conductorHomeCard 字段时
+   renderConductorCard() 返回空串，这里回退到原来的「摆设」卡片。
+   中撤回：删掉下面这两行、把 if(!zy) 那段删掉即可。 */
+function zhuyanCard(){
+  const zy=KEY_BY['conductor_f'];
+  /* 【C1】zone1 的教学枚不走通道 A，「祝颜印证」按钮在 zone1 一律不出现 */
+  const zSlot=clueOf(S.zone), zCan=zSlot.found&&zSlot.state==='raw'&&S.zone!==1;
+  const chc=CFG.conductorHomeCard.enabled?renderConductorCard():'';
+  if(chc) return chc;
+  if(!zy) return '';
+  return `<div class="card">
       <div class="ttl">${esc(zy.name)}<small>雾线引路 · trust ${S.trust}</small></div>
       <div class="desc">她只递半句提醒，不下指令；台词按 trust 实际档位取（M4）。</div>
       <button class="btn" data-act="zhuyan" ${zCan?'':'disabled'}><b>去问祝颜</b><small>${zCan?'花 1 点':'先在主线页看看有什么，且还没问过'}</small></button>
     </div>`;
-    h += `<div class="sec">车 厢 里 的 其 他 人</div>`;
-    BG_ALL.forEach(n=>{
-      if(isSecondRun() && n.secondRunHidden) return;
-      const badge=n.dropper?' <span style="font-size:10px;color:var(--warn)">可掉落</span>':'';
-      const done=(n.dropper&&S.flags['han_gave'])?' <span class="done">（已拿过弦）</span>':'';
-      h += `<button class="btn" data-act="bg" data-id="${n.id}"><b>${esc(n.name)}</b>${badge}${done}<small>${esc(n.car)}</small></button>`;
+}
+
+/* 【地点分区 v2 · 2.5 知情人 AND】原逻辑是 knower && knowerHere()。
+   现在多一道地点：知情人只在自己待的地点出现。
+   ⚠️ 苏叶在「连接处·后」、陈桂兰在「硬座车厢」，两人不是同一地点；
+      严格按地点 AND，陈桂兰按钮只在硬座渲染，可它是挂在苏叶卡里的 →
+      会永久点不到。所以默认 knowerStrictLocation:false = 知情人跟着角色卡走
+      （地点 AND 退化为「卡片在哪他在哪」，与改动前等价）；
+      置 true 才是字面 AND（须先把两人挪到同一地点）。 */
+function knowerAtLover(L){
+  const kid=L.knower, N=kid?KEY_BY[kid]:null;
+  if(!N || !knowerHere(kid)) return null;
+  if(locOn() && CFG.locationSystem.knowerStrictLocation===true && (N.location||'')!==S.location) return null;
+  return N;
+}
+
+/* 角色卡：原 scene() 里 activeLovers().forEach 的卡片体原样搬出来，逻辑/文案/按钮一字未改。 */
+function renderLoverCard(L){
+  const sr=srLover(L);                       // 【二周目扩面第一批】五位常规角色二周目均为 true
+  const xie=sr && L.id==='xie_xun';          // 【批 1】谢寻：二周目唯一 meta 恋人，陪伴加好感、有专属旧照片事件
+  const a=S.aff[L.id]||0, met=!!S.met[L.id], compDone=!!S.comp[L.id+':'+S.zone], deepDone=!!S.deep[L.id];
+  const knowId=L.knower, knower=knowerAtLover(L);   // C：这一区间 / 这一地点他在不在
+  const kGot=S.knowBonus[knowId]||0;           // A：已经从他那儿听到多少
+  const kFull=kGot>=KNOW_MAX;
+  // 深度按钮只认「公开条件」：初见 + 好感达标。隐藏前置一律不体现在界面上。
+  // 【二周目第一批】deepEvent:false：二周目常规角色一律不列可点的深度事件。
+  // 【批 1】谢寻的旧照片由 maybeTriggerXieXunPhoto 在 zone4+ 自动触发，深度按钮对其整条不渲染。
+  const deepReady=!sr && met && a>=CFG.deepUnlock && !deepDone;
+  const gauge = sr
+    ? (xie ? `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`
+           : `二周目 · 已陪伴 ${S.compTimes[L.id]||0} 次 · 陪伴不加好感`)
+    : `好感 ${a} ｜ 已陪伴 ${S.compTimes[L.id]||0} 次`;
+  const compSub = sr
+    ? (xie ? (compDone?'本区间已陪伴':'0 点 · 每区间 1 次')
+           : (compDone?'本区间已陪伴':'0 点 · 不加好感 · 每区间 1 次'))
+    : (!met?'先搭句话':compDone?'本区间已陪伴':'花 1 点 · 每区间 1 次');
+  let h = `<div class="card">
+        <div class="card-head">${avatarHtml(L.name,L.avatar)}
+        <div class="card-body">
+        <div class="ttl">${esc(L.name)}<small>${thLabel(L)} · ${tierName(L)}</small></div>
+        <div class="desc">${esc(L.tag)}<br>${esc(L.car)}</div>
+        <div class="gauge">${gauge}</div>
+        </div></div>
+        ${(met||(sr&&!xie))?'':`<button class="btn primary" data-act="meet" data-id="${L.id}"><b>初见 · 搭句话</b><small>不耗行动点 · 之后才能陪伴与深聊</small></button>`}
+        <button class="btn" data-act="comp" data-id="${L.id}" ${(sr?compDone:(!met||compDone))?'disabled':''}><b>陪伴</b><small>${compSub}</small></button>
+        ${sr?'':`<button class="btn" data-act="deep" data-id="${L.id}" ${deepReady?'':'disabled'}><b>${esc(L.sideQuest.name)}</b><small>${deepHint(L,deepDone,met,a)}</small></button>`}`;
+  if(knower){
+    const kLabel = (S.know[knowId]&&!kFull) ? '再找 '+knower.name+' 聊聊' : '找 '+knower.name+' 聊聊';
+    const kSub = kFull ? '知情人 · 已聊透'
+               : !S.know[knowId] ? '花 1 点 · 他肯说多少，看你到场时攒了什么'
+               : '回访免费补听（已听到 +'+kGot+' ／ 上限 +'+KNOW_MAX+'）';
+    h += `<button class="btn" data-act="know" data-id="${knowId}" ${kFull?'disabled':''}><b>${esc(kLabel)}</b><small>${kSub}</small></button>`;
+  }
+  h += `</div>`;
+  return h;
+}
+
+function bgButton(n){
+  const badge=n.dropper?' <span style="font-size:10px;color:var(--warn)">可掉落</span>':'';
+  const done=(n.dropper&&S.flags['han_gave'])?' <span class="done">（已拿过弦）</span>':'';
+  return `<button class="btn" data-act="bg" data-id="${n.id}"><b>${esc(n.name)}</b>${badge}${done}<small>${esc(n.car)}</small></button>`;
+}
+
+/* 【2026-11-07 批 3】二周目彩蛋 NPC：只在二周目、对应 zone 出现，标记「彩蛋」。
+   每趟只结算一次；结算后 S.flags.eggDone[id]=true，不再显示。
+   小字仍用 e.location（原地点描述），地点分区只按 locationId 归类，不改这行文案。 */
+function eggButton(id){
+  const e=EGGS[id];
+  return `<button class="btn" data-act="egg" data-id="${id}"><b>${esc(e.name)}</b> <span style="font-size:10px;color:var(--accent)">· 彩蛋</span><small>${esc(e.location)}</small></button>`;
+}
+
+/* 【2026-11-06 C6 时序修复 · 死按钮一并修】zone6 时这个按钮原来仍走
+   data-act="next"，而 nextZone() 第一行就 if(S.zone>=CFG.zones) return;
+   → 点了没反应。改成 data-act="finale"，与分岔口页同一个问答入口；
+   zone<6 仍走 next。当前 renderAll() 在 zone6 会把 scene 强切 finale，
+   本按钮通常不上屏，但任何路径点到都不会再是死按钮。 */
+function nextZoneBtn(){
+  return `<div class="btn-row" style="margin-top:10px"><button class="btn ${S.zone<CFG.zones?'primary':'ok'}" data-act="${S.zone<CFG.zones?'next':'finale'}">${S.zone<CFG.zones?'前往下一区间 →':'到站 · 翻开手账'}</button></div>`;
+}
+
+/* ---------- 地点分区：这一节有谁 ----------
+   下面四个函数是「标签人数」和「真渲染」的唯一口径：标签上写几个，
+   点进去就一定渲染几条（同源，不各写一份）。 */
+function locLoversAt(id){
+  return activeLovers().filter(L=>L.difficulty!=='meta' && L.location===id);
+}
+function locBgAt(id){
+  return BG_ALL.filter(n=>{
+    if(isSecondRun() && n.secondRunHidden) return false;
+    /* 二周目优先 locationSecondRun（加班运营二周目挪到硬座） */
+    const at=(isSecondRun() && n.locationSecondRun) ? n.locationSecondRun : n.location;
+    return at===id;
+  });
+}
+function locEggsAt(id){
+  if(!isSecondRun()) return [];
+  return Object.keys(EGGS).filter(k=>{
+    const e=EGGS[k];
+    if(!e || typeof e!=='object' || !e.id) return false;   // easterEggs 里还混着一条 note 字符串，跳过
+    return (e.locationId||'')===id && eggHere(k);
+  });
+}
+function locKnowersAt(id){
+  const out=[];
+  locLoversAt(id).forEach(L=>{ const N=knowerAtLover(L); if(N) out.push(N.id); });
+  return out;
+}
+/* 人数 = 该地点实际会渲染的条目数。祝颜 / 谢寻在工作人员区，不计入任何地点。 */
+function locNpcCount(id){
+  return locLoversAt(id).length + locKnowersAt(id).length
+       + locBgAt(id).length + locEggsAt(id).length;
+}
+/* 常驻地点：数据层 locations.<id>.alwaysShow=true 的地点，即使 0 人也留在标签栏里。
+   用于车尾 / 空车厢这类「剧情上玩家该知道能去、但大多数时候没人」的地方。 */
+function locAlwaysShow(id){
+  const L=LOCS[id]||{};
+  return !!L.alwaysShow;
+}
+
+function renderLocBar(){
+  const cur=S.location;
+  /* 【2026-11-08】只显示「有人的地点」，空地点不占位（11 个压到 4~6 个）。
+     两类例外：
+       ① 当前地点无论人数都保留 —— 否则站在空地点（读档后原来的人已经走了）时，
+          栏里连当前高亮项都没有，看着像坏了；
+       ② locations.<id>.alwaysShow=true 的常驻地点（车尾 / 空车厢）—— 它们的条目
+          只在很窄的条件窗口里出现（二周目 zone5 集齐碎片 / zone6 c4 done），
+          不常驻的话一周目玩家永远不知道车能走到尾。
+     人数口径仍走 locNpcCount()，与真渲染同源：标签上有几个，点进去就是几个。 */
+  const tags=locOrder().filter(id=>id===cur || locNpcCount(id)>0 || locAlwaysShow(id)).map(id=>{
+    const L=LOCS[id]||{};
+    const on=(id===cur)?' on':'';
+    const ic=(CFG.locationSystem.showIcons && L.icon) ? esc(L.icon)+' ' : '';
+    const n=locNpcCount(id);
+    const cnt=(CFG.locationSystem.showNpcCount && n>0) ? `<span class="lc">${n}</span>` : '';
+    return `<div class="loc-tag${on}" data-act="loc" data-id="${esc(id)}">${ic}${esc(L.name||id)}${cnt}</div>`;
+  }).join('');
+  return `<div class="zone-loc-bar">${tags}</div>`;
+}
+
+/* 背景横幅：bg 空串就不写 background-image，留纯色底（--accent-soft）。
+   图 404 也自然透出底色 —— 不加 onerror，避免内联事件。 */
+function renderLocBg(){
+  if(!CFG.locationSystem.showBackground) return '';
+  const L=LOCS[S.location]||{};
+  const bg=String(L.bg||'').replace(/['"()]/g,'');
+  const style = bg ? ` style="background-image:url('${bg}')"` : '';
+  return `<div class="loc-bg"${style}></div>`;
+}
+
+/* 当前地点 NPC：角色卡（含知情人按钮）→ 背景 NPC → 彩蛋；一条都没有时给一句空态。 */
+function sceneByLocation(){
+  let h = sceneCommon();
+  h += renderLocBar();
+  h += renderLocBg();
+  const loc=S.location;
+  const lovs=locLoversAt(loc), bgs=locBgAt(loc), eggs=locEggsAt(loc);
+  lovs.forEach(L=>{ h += renderLoverCard(L); });
+  bgs.forEach(n=>{ h += bgButton(n); });
+  eggs.forEach(id=>{ h += eggButton(id); });
+  /* 空态：地点可以在数据层配 emptyText（车尾 / 空车厢这类常驻空场用），没配就回退通用那句。 */
+  if(!lovs.length && !bgs.length && !eggs.length){
+    const emptyText=(LOCS[loc]||{}).emptyText || '这一节暂时没人。';
+    h += `<div class="loc-empty">${esc(emptyText)}</div>`;
+  }
+  /* 工作人员：祝颜恒在（卡片/摆设按原开关回退）；谢寻只在二周目，切地点不消失。 */
+  h += `<div class="staff-sec">工 作 人 员</div>`;
+  h += zhuyanCard();
+  if(isSecondRun() && LOVER_BY['xie_xun']) h += renderLoverCard(LOVER_BY['xie_xun']);
+  h += nextZoneBtn();
+  return h;
+}
+
+/* 改动前的车厢页：顺序一字不改（lovers → 祝颜 → 其 他 人 → 彩蛋 → 下一区间）。 */
+function sceneLegacy(){
+  let h = sceneCommon();
+  activeLovers().forEach(L=>{ h += renderLoverCard(L); });
+  h += zhuyanCard();
+  h += `<div class="sec">车 厢 里 的 其 他 人</div>`;
+  BG_ALL.forEach(n=>{
+    if(isSecondRun() && n.secondRunHidden) return;
+    h += bgButton(n);
+  });
+  if(isSecondRun()){
+    Object.keys(EGGS).forEach(id=>{
+      if(!eggHere(id)) return;
+      h += eggButton(id);
     });
-    /* 【2026-11-07 批 3】二周目彩蛋 NPC：只在二周目、对应 zone 出现，标记「彩蛋」。
-       每趟只结算一次；结算后 S.flags.eggDone[id]=true，不再显示。 */
-    if(isSecondRun()){
-      Object.keys(EGGS).forEach(id=>{
-        if(!eggHere(id)) return;
-        const e=EGGS[id];
-        h += `<button class="btn" data-act="egg" data-id="${id}"><b>${esc(e.name)}</b> <span style="font-size:10px;color:var(--accent)">· 彩蛋</span><small>${esc(e.location)}</small></button>`;
-      });
-    }
-    /* 【2026-11-06 C6 时序修复 · 死按钮一并修】zone6 时这个按钮原来仍走
-       data-act="next"，而 nextZone() 第一行就 if(S.zone>=CFG.zones) return;
-       → 点了没反应。改成 data-act="finale"，与分岔口页同一个问答入口；
-       zone<6 仍走 next。当前 renderAll() 在 zone6 会把 scene 强切 finale，
-       本按钮通常不上屏，但任何路径点到都不会再是死按钮。 */
-    h += `<div class="btn-row" style="margin-top:10px"><button class="btn ${S.zone<CFG.zones?'primary':'ok'}" data-act="${S.zone<CFG.zones?'next':'finale'}">${S.zone<CFG.zones?'前往下一区间 →':'到站 · 翻开手账'}</button></div>`;
-    return h;
-  },
+  }
+  h += nextZoneBtn();
+  return h;
+}
+
+const RENDERERS = {
+  /* 【地点分区 v2】唯一分叉口：开关关掉 → sceneLegacy()，与改动前逐字相同。 */
+  scene(){ return locOn() ? sceneByLocation() : sceneLegacy(); },
 
   /* 【2.6】主线任务页：双显示「记下 x / 读懂 y」+ 每枚按三态给动作。
      【第三批】终局 minClues 前置 BE 已删，这里也不写「还差几笔」的闸门文案（Q3 定稿）。 */
@@ -3930,14 +4326,17 @@ const RENDERERS = {
     let h = `<div class="sec">主 线 · 这 趟 车 的 规 则</div>
       <div class="card">
         <div class="ttl">手账进度<small>记下 ${n} / ${CLUES.length} · 读懂 ${y} / ${CLUES.length}</small></div>
-        <div class="desc">把看见的东西先记下来。再找人问清楚，自己写下答案，才算真的记住。</div>
+        <div class="desc">每一条线索分三步：把看见的东西先记下来，再找人问清楚，最后自己写下答案。写错改不了，想清楚再落笔。</div>
         <div class="gauge">别人说的没法带走，写错了就改不了，要想清楚再落笔哦~</div>
       </div>`;
     CLUES.forEach(c=>{
       const q=clueOf(c.zone);
-      /* 状态标签用人话；q.found 为 false 时不显示状态（没点开就没有状态），
-         否则会与正文「（还没点开这一区间的热点）」自相矛盾。 */
-      const tag = q.found ? ({raw:'记下了 · 还没问',pending:'问明白了 · 还没写',done:'记对了'}[q.state]||'—') : '';
+      const notYet=c.zone>S.zone;   // 未抵达的区间：卡片可见，但没有热点按钮
+      /* 【文案整理 v1 · 2.1】状态标签四档人话：还没看 / 记下了，还没问 / 问过了，还没写 / 写对了。
+         未抵达区间不加标签（正文已经是「（车还没开到这一节）」）。 */
+      const tag = q.found
+        ? ({raw:'记下了，还没问',pending:'问过了，还没写',done:'写对了'}[q.state]||'—')
+        : (notYet ? '' : '还没看');
       let body='',btns='';
       if(c.id==='c1' && q.state!=='done'){
         /* 【C1 三步教学】教学枚唯一入口：只有「进入教学」，不渲染通道 A/B，
@@ -3945,11 +4344,10 @@ const RENDERERS = {
         body='记下的是：'+esc(c.record)+' ｜ '+esc(tutTag(c));
         btns=`<button class="btn" data-act="tutorial"><b>${esc(pendingText(tutUi(c).entryLabel,'进入教学 · 第 1 笔'))}</b><small>${esc(pendingText(tutUi(c).entryHint,'不耗行动点 · 点错可以重来'))}</small></button>`;
       } else if(!q.found){
-        const notYet=c.zone>S.zone;   // 未抵达的区间：卡片可见，但没有热点按钮
         /* 线索的 source 字段是内部开发备注（设计来源 / 呼应原文哪一段），不上屏；
            数据层原样保留，渲染层不显示。下面紧跟的热点按钮本身就是引导。 */
         body=(notYet?'（车还没开到这一节）':'（这一区间还没看过）');
-        btns=notYet?'':`<button class="btn" data-act="hotspot" data-z="${c.zone}"><b>看看这里有什么</b><small>不耗行动点${c.hotspot.trustDelta?' · trust +'+c.hotspot.trustDelta:''}</small></button>`;
+        btns=notYet?'':`<button class="btn" data-act="hotspot" data-z="${c.zone}"><b>看看这里有什么</b><small>不耗行动点 · 先看看这一节有什么</small></button>`;
       } else if(q.state==='raw'){
         body='记下的是：'+esc(c.record);
         btns=`<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="conductor_f"><b>去问祝颜</b><small>${c.interpret.cost?'花 '+c.interpret.cost+' 点':'不耗点'} · trust +1</small></button>`
@@ -3957,17 +4355,18 @@ const RENDERERS = {
       } else if(q.state==='pending'){
         /* 【②】forkFlag 枚在整句上方先给提示 + 题干；blank 枚不受影响 */
         body=quizHead(c)+'整句：'+esc(fullSentence(c))+(q.wrong?'<br><span class="desc">这一笔写错了，改不了。</span>':'');
-        if(!q.wrong) btns=c.tokens.map(t=>`<button class="btn" data-act="write" data-z="${c.zone}" data-k="${esc(t.key)}"><b>${esc(tokenText(t))}</b></button>`).join('');
+        if(!q.wrong) btns=`<div class="desc">从下面挑关键点记进手账，注意写错就没法更改。</div>`
+          + c.tokens.map(t=>`<button class="btn" data-act="write" data-z="${c.zone}" data-k="${esc(t.key)}"><b>${esc(tokenText(t))}</b></button>`).join('');
       } else {
         body='记下的是：'+esc(c.record)+' ｜ 写下的关键词：'+esc(keywordLabel(c,q.keyword))
            + (q.via==='tutorial'?'<br><span class="desc">'+esc(tutTag(c))+'</span>':'');
       }
       h += `<div class="card ${q.found?'':'ghost'}">
-        <div class="ttl">第 ${c.zone} 区间<small>${tag}${q.wrong?' · 写错了':''}</small></div>
+        <div class="ttl">第 ${c.zone} 区间<small>${tag}${q.wrong?' · 写错了，改不了':''}</small></div>
         <div class="desc">${esc(c.hook)}</div>
         <div class="gauge">${body}</div>
         ${btns}
-        <button class="btn" data-act="reread" data-z="${c.zone}" style="margin-top:6px"><b>重读这一笔</b><small>不耗行动点</small></button>
+        <button class="btn" data-act="reread" data-z="${c.zone}" style="margin-top:6px"><b>重读这一笔</b><small>不耗行动点 · 看看之前记了什么</small></button>
       </div>`;
     });
     /* 【2026-11-06 首周目谢寻巡查】手账杂记：主线 6 张卡片下方的小字单列一栏。
@@ -3989,7 +4388,7 @@ const RENDERERS = {
     });
     h+=`<div class="card"><div class="ttl">属性</div>
       <div class="gauge">记下 ${clueCount()} 笔 ｜ 读懂 ${interpretedCount()} 笔 ｜ 祝颜 trust ${S.trust}</div>
-      <div class="gauge">背包：${Object.keys(S.bag).filter(k=>S.bag[k]>0).map(k=>esc(k)+'×'+S.bag[k]).join('、')||'空'}</div></div>`;
+      <div class="gauge">背包：${Object.keys(S.bag).filter(k=>S.bag[k]>0).map(k=>esc((STORY.itemLabels||{})[k]||k)+'×'+S.bag[k]).join('、')||'空'}</div></div>`;
     /* 【2026-11-07 批 3 · 3.11】旧手账残页：手账页背包卡片下方加「使用」按钮（>0 时显示）。 */
     if((S.bag['旧手账残页']||0)>0){
       h += `<button class="btn" data-act="use-fragment"><b>使用旧手账残页</b><small>补记一条漏掉的线索</small></button>`;
@@ -4096,8 +4495,8 @@ const RENDERERS = {
   save(){
     if(!CFG.multiSlotSave.enabled) return RENDERERS.saveLegacy();
     const meta=readSlotMeta();
-    const slots=[{id:CFG.saves.autoSlot,label:'自动存档'}]
-      .concat((CFG.saves.manualSlots||[]).map(id=>({id,label:'存档 '+id})));
+    const slots=[{id:CFG.saves.autoSlot,label:slotLabel(CFG.saves.autoSlot)}]
+      .concat((CFG.saves.manualSlots||[]).map(id=>({id,label:slotLabel(id)})));
     const fmt=t=>{ const d=new Date(t); const p=n=>String(n).padStart(2,'0');
       return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()); };
     const zoneLbl=m=>(Number(m.zone)>=CFG.zones)?'终点站':('第 '+m.zone+' 区间');
@@ -4402,13 +4801,35 @@ function actHotspot(z){
   }
   const q=clueOf(c.zone);
   if(q.found){ pushEvent('这一笔已经记下了。',[{t:'合上手账',fn:()=>{}}]); return flushEvents(); }
+  /* 【FAST · 2.1】二周目：点热点直接进 pending，省掉「去问祝颜」这一步。
+     顺序不可换：found 检查（上一行）→ 扣点（失败即 return，手账保持空白）→ 置状态 → 补旧记录碎片。
+     扣点必须在置状态之前，否则「点数不够」时会留下一个 found 却写不了的死格子。 */
+  if(fastOn()){
+    if((c.interpret.cost||0)>0 && !costAction()) return;
+    q.found=true; q.state='pending'; q.via='secondRun';
+    /* actInterpret 的通道 A 分支是这条旧记录碎片的唯一原调用点；fast 绕过后必须在这里补一次。
+       acquireOldRecord 内部幂等（已有即跳过），c2–c6 每次点热点都调无害。
+       放扣点之后，避免「没扣点却拿到碎片」。 */
+    acquireOldRecord('zhuyan_watching_fog');
+    addLog('点开第 '+c.zone+' 区间的线索，记下：'+c.record+'。');
+    /* 弹窗整段复刻 actInterpret 的 pushEvent：必须带 quizHead(c) + fullSentence(c)。
+       c5／c6 是 forkFlag 枚，quizHead 是「这三枚不填进那三句话」的唯一提示，丢了玩家会误填三空。
+       只把 line（祝颜 + trustLine）换成新引导语，其余与通道 A 逐字一致。 */
+    pushEvent(`<span class="nm">手账 · 第 ${c.zone} 笔</span><br>${esc(c.hook)}<br>
+      <span class="desc">这一趟你带着记忆回来，不用再问一遍。看清整句，自己挑一句写下来。</span><br><br>`
+      + quizHead(c)
+      + `<span class="nm">整句</span><br>${esc(fullSentence(c))}
+      <br><span class="desc">看清整句话之后，需要就从选项中挑一句你觉得最对的关键点，注意：选错了就不能更改了哦~</span>`,
+      c.tokens.map(t=>({t:'就是这句：'+tokenText(t),fn:()=>actWriteKeyword(c.zone,t.key)})));
+    afterChange(); flushEvents(); return;
+  }
   q.found=true; q.state='raw';             // P1：点热点不写 pending，raw→pending 交给 actInterpret
   /* 热点区间锁保留；【甲】全部 clues[].hotspot.trustDelta 已归零，
      trust 只由教学 + 通道 A 增长，这里自然不再加成（旧 M3 修法 A 退休，说明见数据）。
      zone5 补点 c4 仍可 found=true（Q3：漏不是失败），只是不再额外加 trust。 */
   const td=(S.zone===c.zone)?(c.hotspot.trustDelta||0):0;
   if(td) addTrust(td);
-  addLog('点开第 '+c.zone+' 区间的热点，记下：'+c.record+(td?'（trust +'+td+'）':'')+'。');
+  addLog('点开第 '+c.zone+' 区间的线索，记下：'+c.record+(td?'（trust +'+td+'）':'')+'。');
   pushEvent(`<span class="nm">手账 · 第 ${c.zone} 笔</span><br>${esc(c.hook)}<br>
     <span class="desc">记下的是：${esc(c.record)}${td?' ｜ trust +'+td:''}</span><br>
     <span class="desc">这一笔还只是记下，还没问过。去主线页找人问问，再自己写下答案。</span>`,
@@ -4459,11 +4880,12 @@ function channelBTemplate(tpl,name,text){
    不用 disabled（会拦住点击、弹不出提示）；点击由 actInterpret 弹提示且不扣行动点。 */
 function channelBButton(c){
   if(!channelBAllowed(c)) return '';
+  if(fastOn()) return '';                  // 【FAST · 2.2】二周目不渲染通道 B（回到按钮：关开关即恢复）
   const u=channelBUi(), cand=channelBCandidates(c);
   const costTxt=c.interpret.cost?'花 '+c.interpret.cost+' 点':'不耗点';
   if(!cand.length)
     return `<button class="btn ghost" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>${esc(pendingText(u.channelBNone,'还没认识车上的人。'))}</b><small>${costTxt}</small></button>`;
-  return `<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>去问车上认识的人</b><small>${costTxt}</small></button>`;
+  return `<button class="btn" data-act="interpret" data-z="${c.zone}" data-via="channelB"><b>去问车上认识的人</b><small>${costTxt} · 选对人可以加对应好感</small></button>`;
 }
 function actInterpret(z,via,picked){
   const c=clueByZone(z); if(!c) return;
@@ -4550,7 +4972,13 @@ function actWriteKeyword(z,key){
   const forkUi = c.keyword.useFor==='forkFlag' ? quizHead(c) : '';
   if(key===c.keyword.key){
     q.state='done'; q.keyword=key;       // Q2 定稿：按 id / key 匹配，无自由输入
-    addLog('写下第 '+c.zone+' 笔的关键词：'+t.key+'（已读懂 '+interpretedCount()+' 笔）。');
+    /* 【FAST · 2.5】二周目每完成 1 条 +1，与一周目通道 A 的节奏等价（c2–c6 各 1 次＝5）。
+       不需要 c.id!=='c1'：c1 在函数开头就 return tutorialEntry()，走不到这里。
+       不需要 S.trust<5 守卫：addTrust() 内部已 Math.min(max,…)。 */
+    if(fastOn()) addTrust(1);
+    /* 【2.8】日志只写玩家看到的词（t.word），不写 token 的内部 key（形如 c3_a）——
+       手账「手账记事」是把 S.log 原样渲染的，写 key 就是把内部 ID 送到玩家眼前。 */
+    addLog('写下第 '+c.zone+' 笔的关键词：'+keywordLabel(c,key)+'（已读懂 '+interpretedCount()+' 笔）。');
     pushEvent(`${forkUi}<span class="nm">这一笔，你记下了。</span><br>${esc(tokenText(t))}<br>
       <span class="desc">你写的是：${esc(keywordLabel(c,key))}</span>`,[{t:'记进手账',fn:()=>{}}]);
   } else {
@@ -4687,6 +5115,13 @@ function eggPickupGranny(e){
   flushEvents();
 }
 function eggGrannyGive(r,e){
+  /* 【文案整理 v1 · 7】选中奖励先播「（获得：xx）」，点「知道了」再进原发放逻辑。
+     提示不阻断、不耗行动点、不置 flag。 */
+  pushEvent(`<span class="desc">（获得：${esc(r.label)}）</span>`,
+    [{t:'知道了',fn:()=>grannyGrant(r,e)}]);
+  flushEvents();
+}
+function grannyGrant(r,e){
   if(r.effect==='restore_lost_clue'){
     S.bag[r.label]=(S.bag[r.label]||0)+1;
     pushEvent(`<span class="nm">${esc(e.name)}</span><br>拿去吧。……总有用得上的地方。`,
@@ -4732,19 +5167,28 @@ function eggChessPlayers(e){
   S.flags.eggDone=S.flags.eggDone||{}; S.flags.eggDone[e.id]=true;
   pushEvent(`<span class="nm">${esc(e.name)}</span><br>${esc(e.intro)}`,
     e.options.map(o=>({t:esc(o),fn:()=>{
-      /* 两个选项都推进到同一后续 */
+      /* 【文案整理 v1 · 8】两个选项都先见过渡句（数据层 transition），再走原「拿到棋子 → 给谁」。 */
       const r=e.rewards[0];
-      pushEvent(`<span class="desc">（他们又低下头去，谁也没落子。）</span>`,
-        [{t:'拿到'+esc(r.label),fn:()=>{
-          const target=e.rewards[0].targets;
-          pushEvent(`<span class="nm">${esc(e.name)}</span><br>给谁？`,
-            target.filter(id=>LOVER_BY[id]).map(id=>({t:esc(LOVER_BY[id].name),fn:()=>{
-              const line=(e.rewards[0].lines||{})[id]||'';
-              giveItemTo(id,{id:e.rewards[0].id,label:e.rewards[0].label},e.rewards[0].aff||0,line);
-            }})));
-          flushEvents();
-        }}]);
-      flushEvents();
+      const trans=pendingText(e.transition,'');
+      const next=()=>{
+        pushEvent(`<span class="desc">（他们又低下头去，谁也没落子。）</span>`,
+          [{t:'拿到'+esc(r.label),fn:()=>{
+            const target=e.rewards[0].targets;
+            pushEvent(`<span class="nm">${esc(e.name)}</span><br>给谁？`,
+              target.filter(id=>LOVER_BY[id]).map(id=>({t:esc(LOVER_BY[id].name),fn:()=>{
+                const line=(e.rewards[0].lines||{})[id]||'';
+                giveItemTo(id,{id:e.rewards[0].id,label:e.rewards[0].label},e.rewards[0].aff||0,line);
+              }})));
+            flushEvents();
+          }}]);
+        flushEvents();
+      };
+      if(trans){
+        pushEvent(`<span class="desc">${esc(trans)}</span>`,[{t:'……',fn:next}]);
+        flushEvents();
+      } else {
+        next();
+      }
     }})));
   flushEvents();
 }
@@ -4765,8 +5209,14 @@ function eggWindowWoman(e){
           S.bag[item.label]=(S.bag[item.label]||0)+1;
           const before=S.trust;
           addTrust(item.trustDelta);
-          const line=S.trust>before ? item.line : (item.fallbackIfCapped.text||'');
-          pushEvent(`<span class="nm">祝颜</span><br>${esc(line)}`,[{t:'记进手账',fn:()=>{}}]);
+          /* 【文案整理 v1 · 5】line 已是四段式叙述（给票 → 走进雾 → 递票给祝颜 → 信任 +1），
+             不再加「祝颜」说话人标签；换行按 \n 分段。trust 封顶时仍走 fallbackIfCapped（她的台词）。 */
+          if(S.trust>before){
+            pushEvent(nl2br(item.line||''),[{t:'记进手账',fn:()=>{}}]);
+          } else {
+            pushEvent(`<span class="nm">祝颜</span><br>`+nl2br(item.fallbackIfCapped.text||''),
+              [{t:'记进手账',fn:()=>{}}]);
+          }
           flushEvents();
         }},
         {t:'不是',fn:()=>{
@@ -4778,18 +5228,29 @@ function eggWindowWoman(e){
   flushEvents();
 }
 
-/* 【批 3 · 3.9】雾里的小孩 */
+/* 【批 3 · 3.9】雾里的小孩
+   【文案整理 v1 · 6】点头后不再 Math.random() 四选一：小孩掏出画 → 四个角色各一件信物，
+   由玩家挑「给谁」。A4 规则不变（giveItemTo 内：常规角色只播台词不加好感、谢寻只给 tag/flag）。 */
 function eggFogChild(e){
   S.flags.eggDone=S.flags.eggDone||{}; S.flags.eggDone[e.id]=true;
   pushEvent(`<span class="nm">${esc(e.name)}</span><br>${esc(e.intro)}`,
     [{t:'点头',fn:()=>{
-      const list=e.nodRewards;
-      const pick=list[Math.floor(Math.random()*list.length)];
-      if(pick.flagKey){ S.flags=S.flags||{}; S.flags[pick.flagKey]=true; }
-      giveItemTo(pick.target,{id:pick.id,label:pick.label},pick.aff||0,pick.line,pick.tag,pick.flagKey);
+      const list=Array.isArray(e.choices)?e.choices:[];
+      const intro=pendingText(e.choicesIntro,'');
+      pushEvent(`<span class="nm">小孩</span><br>${esc(intro)}`,
+        list.map(ch=>{
+          const L=LOVER_BY[ch.target], nm=L?L.name:ch.target;
+          return {
+            t:esc(nm),
+            hint:esc('你想起他提到过类似的东西。'),
+            fn:()=>pushEvent(`你把${esc(ch.item.label)}递给${esc(nm)}。`,
+              [{t:'……',fn:()=>giveItemTo(ch.target,ch.item,ch.aff||0,ch.line,ch.tag,ch.flagKey)}])
+          };
+        }));
+      flushEvents();
     }},
     {t:'摇头',fn:()=>{
-      pushEvent(`<span class="desc">（小孩低下头继续画。）</span>`,[{t:'知道了',fn:()=>{}}]);
+      pushEvent(`<span class="desc">${esc(pendingText(e.nodNo,''))}</span>`,[{t:'知道了',fn:()=>{}}]);
       flushEvents();
     }}]);
   flushEvents();
@@ -4808,9 +5269,20 @@ function eggOldConductor(e){
           S.flags=S.flags||{};
           if(after.flagKey) S.flags[after.flagKey]=true;
           pushJournalNote({source:e.id,zone:S.zone,text:after.journalNote});
-          pushEvent(`<span class="nm">${esc(e.name)}</span><br>「${esc(after.text)}」`,
-            [{t:'记进手账',fn:()=>{}}]);
-          flushEvents();
+          /* 【文案整理 v1 · 9】先播撕纸过渡句，点「……」再播 afterBothQuestions.text。
+             flagKey / journalNote 的落点与时机不变。 */
+          const trans=pendingText(after.transition,'');
+          const sayPage=()=>{
+            pushEvent(`<span class="nm">${esc(e.name)}</span><br>「${esc(after.text)}」`,
+              [{t:'记进手账',fn:()=>{}}]);
+            flushEvents();
+          };
+          if(trans){
+            pushEvent(`<span class="desc">${esc(trans)}</span>`,[{t:'……',fn:sayPage}]);
+            flushEvents();
+          } else {
+            sayPage();
+          }
         } else {
           pushEvent(`<span class="nm">${esc(e.name)}</span><br>（你还能再问一个问题）`,
             e.questions.filter(qq=>!e.answers[qq]||true).map(qq=>({t:esc(qq),fn:()=>ask(qq)})));
@@ -5638,6 +6110,8 @@ function normalizeSave(old){
   if(!Array.isArray(s.journalNotes)) s.journalNotes=[];
   /* 【2026-11-07 批 4】旧档补 oldRecords / fragmentShown；不追溯、不弹窗。 */
   if(!Array.isArray(s.oldRecords)) s.oldRecords=[];
+  /* 【地点分区 v2】旧档没有 S.location / 不是已知地点 → 静默落回默认落点（与 newGame 同一口径）；不报错、不弹窗。 */
+  if(!s.location || !LOCS[s.location]) s.location='dining_corner';
   s.flags=Object.assign({},s.flags||{});
   if(typeof s.flags.fragmentShown!=='boolean') s.flags.fragmentShown=false;
   if(!s.flags.xieXunTalked || typeof s.flags.xieXunTalked!=='object') s.flags.xieXunTalked={};
@@ -5739,6 +6213,9 @@ document.addEventListener('click', e=>{
     if(st&&st.onClick) st.onClick(S);
     return;
   }
+  /* 【地点分区 v2】换地点：只改 UI 状态 + 重画。不调 afterChange()（不写自动档）、
+     不耗行动点、不推 zone；等下一次正常动作触发 afterChange() 时随档保存。 */
+  if(act==='loc'){ if(LOCS[id]){ S.location=id; renderAll(); } return; }
   if(act==='meet') return actMeet(id);
   if(act==='comp') return actComp(id);
   if(act==='deep') return actDeep(id);
@@ -5778,8 +6255,8 @@ document.addEventListener('click', e=>{
        {t:'再想想',fn:()=>{}}]);
     flushEvents(); return;
   }
-  if(act==='save'){ saveGame(id); addLog('已存入槽位 '+id+'。'); return afterChange(); }
-  if(act==='load'){ if(loadGame(id)){ addLog('读取了槽位 '+id+'。'); eventQueue=[]; } return afterChange(); }
+  if(act==='save'){ saveGame(id); addLog('已存入：'+slotLabel(id)+'。'); return afterChange(); }
+  if(act==='load'){ if(loadGame(id)){ addLog('已读取：'+slotLabel(id)+'。'); eventQueue=[]; } return afterChange(); }
   /* 【2026-11-07 批 B′】一局走完：合上手账 → 感谢游玩画面 → 回到封面。
      back-to-cover 只切 UI，不清 S；存档保留本局（继续上次行程读回它）。 */
   if(act==='goto-gameover'){ S.tab='gameOver'; renderAll(); return; }
